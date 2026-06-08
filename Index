@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EUROPA 2027 · Financial Controller Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f2f5;--bg2:#ffffff;--bg3:#f7f8fa;--bg4:#eef0f4;
+  --border:#dde1e9;--border2:#c8cdd8;
+  --text:#1a1f2e;--text2:#4b5470;--text3:#8892aa;
+  --blue:#1d4ed8;--blue-d:#1e40af;--blue-bg:#dbeafe;
+  --green:#15803d;--green-d:#166534;--green-bg:#dcfce7;
+  --amber:#b45309;--amber-d:#92400e;--amber-bg:#fef3c7;
+  --red:#b91c1c;--red-d:#991b1b;--red-bg:#fee2e2;
+  --cyan:#0e7490;--cyan-bg:#cffafe;
+  --purple:#7c3aed;--purple-bg:#ede9fe;
+  --r:6px;--r2:10px;
+  --font-mono:'JetBrains Mono',monospace;
+  --font:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;min-height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg3)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* HEADER */
+#app-header{
+  background:var(--bg2);box-shadow:0 1px 3px rgba(0,0,0,0.08);border-bottom:1px solid var(--border);
+  padding:0 20px;display:flex;align-items:center;justify-content:space-between;
+  height:52px;position:sticky;top:0;z-index:200;
+}
+.logo{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--blue);letter-spacing:1px}
+.logo span{color:var(--text2);font-weight:400}
+.header-kpis{display:flex;gap:24px;align-items:center}
+.hkpi{text-align:right}
+.hkpi-label{font-size:10px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.8px}
+.hkpi-val{font-family:var(--font-mono);font-size:14px;font-weight:700}
+.header-actions{display:flex;gap:8px}
+.btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:6px 12px;border-radius:var(--r);cursor:pointer;font-size:11px;font-family:var(--font);transition:all .15s}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn-primary{background:var(--blue-d);border-color:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue);color:#fff}
+
+/* NAV TABS */
+#nav-tabs{background:var(--bg2);box-shadow:0 1px 3px rgba(0,0,0,0.08);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:2px;overflow-x:auto}
+.tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);padding:12px 16px 10px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:500;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:6px}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.tab-icon{font-size:14px}
+
+/* CONTENT */
+.tab-page{display:none;padding:20px;max-width:1600px;margin:0 auto}
+.tab-page.active{display:block}
+
+/* SCENARIO BAR */
+.scenario-strip{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.scenario-strip label{font-size:10px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.8px}
+.scen-btn{background:var(--bg4);border:1px solid var(--border2);color:var(--text2);padding:5px 14px;border-radius:20px;cursor:pointer;font-size:11px;font-family:var(--font-mono);transition:all .15s}
+.scen-btn.s-cons.active{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.scen-btn.s-base.active{background:var(--blue-bg);border-color:var(--blue);color:var(--blue)}
+.scen-btn.s-hold.active{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+.strip-right{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--text3)}
+.strip-right strong{color:var(--cyan)}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.blue::before{background:var(--blue)}
+.kpi.green::before{background:var(--green)}
+.kpi.amber::before{background:var(--amber)}
+.kpi.red::before{background:var(--red)}
+.kpi.cyan::before{background:var(--cyan)}
+.kpi.purple::before{background:var(--purple)}
+.kpi-label{font-size:9px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.kpi-value{font-family:var(--font-mono);font-size:22px;font-weight:700;line-height:1}
+.kpi-sub{font-size:10px;color:var(--text3);margin-top:4px}
+.kpi-delta{font-size:10px;font-family:var(--font-mono);margin-top:4px}
+.delta-pos{color:var(--green)}
+.delta-neg{color:var(--red)}
+.delta-neu{color:var(--text3)}
+
+/* SEMÁFORO */
+.semaforo{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11px;font-family:var(--font-mono);font-weight:700}
+.sem-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-d)}
+.sem-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-d)}
+.sem-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-d)}
+.sem-dot{width:8px;height:8px;border-radius:50%}
+.sem-green .sem-dot{background:var(--green)}
+.sem-amber .sem-dot{background:var(--amber)}
+.sem-red .sem-dot{background:var(--red)}
+
+/* PANELS */
+.panel-row{display:grid;gap:16px;margin-bottom:16px}
+.panel-row.cols2{grid-template-columns:1fr 1fr}
+.panel-row.cols3{grid-template-columns:1fr 1fr 1fr}
+.panel-row.cols21{grid-template-columns:2fr 1fr}
+.panel-row.cols12{grid-template-columns:1fr 2fr}
+.panel{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.panel-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:11px;font-weight:600;color:var(--text2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.8px}
+.panel-body{padding:16px}
+
+/* TABLES */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{padding:8px 10px;text-align:left;font-size:9px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--border);background:var(--bg4);white-space:nowrap}
+.data-table td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
+.data-table tr:hover td{background:rgba(59,130,246,.05)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tfoot td{background:var(--bg4);font-weight:700;font-family:var(--font-mono);font-size:11px;border-top:1px solid var(--border2)}
+.mono{font-family:var(--font-mono)}
+.text-right{text-align:right}
+.text-center{text-align:center}
+td.pos{color:var(--green);font-family:var(--font-mono);font-weight:700}
+td.neg{color:var(--red);font-family:var(--font-mono);font-weight:700}
+td.neu{color:var(--text3);font-family:var(--font-mono)}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-family:var(--font-mono);font-weight:700}
+.badge-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-d)}
+.badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-d)}
+.badge-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-d)}
+.badge-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-d)}
+.badge-gray{background:var(--bg4);color:var(--text2);border:1px solid var(--border2)}
+.badge-cyan{background:var(--cyan-bg);color:var(--cyan);border:1px solid #0e7490}
+.badge-purple{background:var(--purple-bg);color:var(--purple);border:1px solid #7c3aed}
+
+/* INPUTS */
+input[type=number],input[type=text],select{
+  background:var(--bg4);border:1px solid var(--border2);color:var(--text);
+  padding:5px 8px;border-radius:var(--r);font-family:var(--font-mono);font-size:11px;
+  transition:border .15s;width:80px;text-align:right
+}
+input[type=number]:focus,input[type=text]:focus,select:focus{outline:none;border-color:var(--blue)}
+select{text-align:left;width:auto;padding:6px 10px;cursor:pointer}
+
+/* PROGRESS */
+.prog-wrap{background:var(--bg4);border-radius:99px;height:6px;overflow:hidden;margin-top:4px}
+.prog-bar{height:6px;border-radius:99px;transition:width .5s ease}
+.prog-blue{background:var(--blue)}
+.prog-green{background:var(--green)}
+.prog-amber{background:var(--amber)}
+.prog-red{background:var(--red)}
+
+/* BURN GAUGE */
+.gauge-container{text-align:center;padding:10px}
+
+/* DIVIDER */
+hr.dark{border:none;border-top:1px solid var(--border);margin:16px 0}
+
+/* CITY CARD */
+.city-block{background:var(--bg4);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:10px}
+.city-block-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.city-name{font-weight:600;font-size:13px}
+.city-dates{font-size:10px;color:var(--text3);font-family:var(--font-mono)}
+
+/* RESERVAS */
+.reserva-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.reserva-row:last-child{border-bottom:none}
+.reserva-status{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.status-confirmed{background:var(--green)}
+.status-pending{background:var(--amber)}
+.status-not-booked{background:var(--text3)}
+
+/* ALERT STRIP */
+.alert-strip{padding:10px 14px;border-radius:var(--r);margin-bottom:12px;font-size:12px;display:flex;gap:10px;align-items:flex-start;border-left:3px solid}
+.alert-green{background:var(--green-bg);border-color:var(--green);color:#86efac}
+.alert-amber{background:var(--amber-bg);border-color:var(--amber);color:#fcd34d}
+.alert-blue{background:var(--blue-bg);border-color:var(--blue);color:#93c5fd}
+.alert-red{background:var(--red-bg);border-color:var(--red);color:#fca5a5}
+
+/* TOTALS FOOTER */
+.totals-footer{background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r2);padding:14px 20px;display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:center;margin-top:16px}
+.tf-item{text-align:center}
+.tf-label{font-size:9px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+.tf-value{font-family:var(--font-mono);font-size:14px;font-weight:700}
+
+/* CHART LEGEND */
+.chart-legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:8px;font-size:11px;color:var(--text2)}
+.chart-legend span{display:flex;align-items:center;gap:4px}
+.leg-dot{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+/* CONFIG */
+.cfg-section{margin-bottom:20px}
+.cfg-title{font-size:10px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.cfg-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:12px}
+.cfg-row:last-child{border-bottom:none}
+.cfg-info{flex:1}
+.cfg-label{font-size:12px;font-weight:500}
+.cfg-sub{font-size:10px;color:var(--text3);margin-top:2px}
+
+@media(max-width:900px){
+  .panel-row.cols2,.panel-row.cols3,.panel-row.cols21,.panel-row.cols12{grid-template-columns:1fr}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .header-kpis{display:none}
+}
+@media print{
+  #nav-tabs,#app-header .header-actions{display:none!important}
+  .tab-page{display:block!important;padding:10px}
+  body{background:#fff;color:#000}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="app-header">
+  <div>
+    <div class="logo">EUROPA 2027 <span>/ FINANCIAL CONTROLLER</span></div>
+    <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-top:2px">LIMA → MADRID → EUROPA · FEB–MAR 2027 · 15 DÍAS TOUR</div>
+  </div>
+  <div class="header-kpis">
+    <div class="hkpi"><div class="hkpi-label">Presupuesto</div><div class="hkpi-val" id="h-budget" style="color:var(--blue)">$4,000</div></div>
+    <div class="hkpi"><div class="hkpi-label">Proyectado</div><div class="hkpi-val" id="h-proj" style="color:var(--amber)">—</div></div>
+    <div class="hkpi"><div class="hkpi-label">Real</div><div class="hkpi-val" id="h-real" style="color:var(--cyan)">$0</div></div>
+    <div class="hkpi"><div class="hkpi-label">Margen</div><div class="hkpi-val" id="h-margin" style="color:var(--green)">—</div></div>
+    <div class="hkpi"><div class="hkpi-label">Semáforo</div><div id="h-semaforo"></div></div>
+  </div>
+  <div class="header-actions">
+    <button class="btn" onclick="exportExcel()">⬇ Excel</button>
+    <button class="btn" onclick="window.print()">⬇ PDF</button>
+    <button class="btn btn-primary" onclick="saveData()">💾 Guardar</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div id="nav-tabs">
+  <button class="tab active" onclick="showTab('dashboard',this)"><span class="tab-icon">◈</span> Dashboard</button>
+  <button class="tab" onclick="showTab('diario',this)"><span class="tab-icon">▦</span> Presup. vs Real</button>
+  <button class="tab" onclick="showTab('curvas',this)"><span class="tab-icon">⟋</span> Curva S & Burn Rate</button>
+  <button class="tab" onclick="showTab('ciudades',this)"><span class="tab-icon">◉</span> Por Ciudad</button>
+  <button class="tab" onclick="showTab('categorias',this)"><span class="tab-icon">▤</span> Por Categoría</button>
+  <button class="tab" onclick="showTab('reservas',this)"><span class="tab-icon">◷</span> Reservas</button>
+  <button class="tab" onclick="showTab('vuelos',this)"><span class="tab-icon">↗</span> Vuelos</button>
+  <button class="tab" onclick="showTab('config',this)"><span class="tab-icon">⚙</span> Config</button>
+</div>
+
+<!-- ====================================================== -->
+<!-- TAB 1: DASHBOARD EJECUTIVO -->
+<!-- ====================================================== -->
+<div class="tab-page active" id="tab-dashboard">
+
+  <div class="scenario-strip">
+    <label>Escenario:</label>
+    <button class="scen-btn s-cons" id="sb-conservador" onclick="setScenario('conservador')">📉 Conservador $3,500</button>
+    <button class="scen-btn s-base active" id="sb-base" onclick="setScenario('base')">📊 Base $4,000</button>
+    <button class="scen-btn s-hold" id="sb-holgado" onclick="setScenario('holgado')">📈 Holgado $4,500</button>
+    <div class="strip-right">EUR/USD: <strong id="strip-tc">1.08</strong> &nbsp;|&nbsp; Actualizado: <strong id="strip-date">—</strong></div>
+  </div>
+
+  <!-- KPI ROW 1 -->
+  <div class="kpi-grid">
+    <div class="kpi blue">
+      <div class="kpi-label">Presupuesto Total</div>
+      <div class="kpi-value" id="kpi-presupuesto" style="color:var(--blue)">$4,000</div>
+      <div class="kpi-sub">USD disponibles tours Europa</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Proyección Final</div>
+      <div class="kpi-value" id="kpi-proyeccion" style="color:var(--amber)">—</div>
+      <div class="kpi-sub" id="kpi-proy-sub">Basado en escenario activo</div>
+    </div>
+    <div class="kpi cyan">
+      <div class="kpi-label">Gasto Real</div>
+      <div class="kpi-value" id="kpi-real" style="color:var(--cyan)">$0</div>
+      <div class="kpi-sub" id="kpi-real-sub">0 días registrados</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Fondo Disponible</div>
+      <div class="kpi-value" id="kpi-disponible" style="color:var(--green)">—</div>
+      <div class="kpi-sub">Presupuesto − Real actual</div>
+    </div>
+    <div class="kpi purple">
+      <div class="kpi-label">Fondo Emergencia</div>
+      <div class="kpi-value" id="kpi-emergencia" style="color:var(--purple)">—</div>
+      <div class="kpi-sub">10% del presupuesto reservado</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-label">Vuelo LIM–MAD</div>
+      <div class="kpi-value" style="color:var(--amber)">S/3,220</div>
+      <div class="kpi-sub">≈ $860 · Presupuestado aparte</div>
+    </div>
+  </div>
+
+  <!-- KPI ROW 2 — OPERACIONAL -->
+  <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:16px">
+    <div class="kpi blue">
+      <div class="kpi-label">Burn Rate Planif.</div>
+      <div class="kpi-value" id="kpi-burn-plan" style="color:var(--blue);font-size:18px">—</div>
+      <div class="kpi-sub">USD/día promedio</div>
+    </div>
+    <div class="kpi cyan">
+      <div class="kpi-label">Burn Rate Real</div>
+      <div class="kpi-value" id="kpi-burn-real" style="color:var(--cyan);font-size:18px">—</div>
+      <div class="kpi-sub" id="kpi-burn-real-sub">Sin datos aún</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Desviación Acum.</div>
+      <div class="kpi-value" id="kpi-desviacion" style="font-size:18px">—</div>
+      <div class="kpi-sub" id="kpi-desv-sub">vs presupuesto base</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Días Restantes</div>
+      <div class="kpi-value" id="kpi-dias-rest" style="color:var(--green);font-size:18px">15</div>
+      <div class="kpi-sub">de 15 días tour</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-label">Costo/Día Acum.</div>
+      <div class="kpi-value" id="kpi-cpd" style="color:var(--blue);font-size:18px">—</div>
+      <div class="kpi-sub">Promedio días con data</div>
+    </div>
+    <div class="kpi purple">
+      <div class="kpi-label">Semáforo Riesgo</div>
+      <div id="kpi-semaforo-big" style="margin-top:6px"></div>
+      <div class="kpi-sub" id="kpi-sem-sub">Estado presupuestal</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Proyección Final</div>
+      <div class="kpi-value" id="kpi-proj-final2" style="font-size:18px">—</div>
+      <div class="kpi-sub" id="kpi-pf2-sub">Si continúa ritmo actual</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-label">Presup. Diario Rest.</div>
+      <div class="kpi-value" id="kpi-daily-rest" style="font-size:18px;color:var(--green)">—</div>
+      <div class="kpi-sub">USD/día para no exceder</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="panel-row cols21">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Distribución Presupuesto — Por Categoría</span>
+        <div id="cat-legend" class="chart-legend"></div>
+      </div>
+      <div class="panel-body">
+        <div style="position:relative;height:220px">
+          <canvas id="chart-donut" role="img" aria-label="Distribución del presupuesto por categoría de gasto">Hoteles, vuelos, comida, actividades y contingencia.</canvas>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Presupuesto por Ciudad</span></div>
+      <div class="panel-body">
+        <div style="position:relative;height:220px">
+          <canvas id="chart-ciudad-bar" role="img" aria-label="Presupuesto por ciudad en USD">Comparación de presupuesto asignado por ciudad.</canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  <div id="dashboard-alerts"></div>
+
+  <!-- RESUMEN GENERAL -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Resumen Ejecutivo · Itinerario 1 Mar – 15 Mar 2027</span></div>
+    <div class="panel-body" style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr>
+          <th>Ciudad</th><th>Período</th><th>Noches</th>
+          <th class="text-right">Hotel USD</th><th class="text-right">Comida USD</th>
+          <th class="text-right">Transp. USD</th><th class="text-right">Act. USD</th>
+          <th class="text-right">Total USD</th><th class="text-right">USD/noche</th><th>Estado</th>
+        </tr></thead>
+        <tbody id="resumen-tbody"></tbody>
+        <tfoot id="resumen-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================== -->
+<!-- TAB 2: PRESUPUESTO VS REAL -->
+<!-- ====================================================== -->
+<div class="tab-page" id="tab-diario">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+    <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono)">INGRESA GASTOS REALES · DATOS SE GUARDAN AUTOMÁTICAMENTE</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="clearReales()">🗑 Limpiar</button>
+      <button class="btn" onclick="fillDemo()">🧪 Demo</button>
+      <button class="btn btn-primary" onclick="renderAll()">↺ Recalcular</button>
+    </div>
+  </div>
+
+  <!-- Resumen Live -->
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
+    <div class="kpi blue"><div class="kpi-label">Total Presup. 15 días</div><div class="kpi-value" id="d-tot-presup" style="color:var(--blue);font-size:18px">—</div></div>
+    <div class="kpi cyan"><div class="kpi-label">Real Registrado</div><div class="kpi-value" id="d-tot-real" style="color:var(--cyan);font-size:18px">$0</div></div>
+    <div class="kpi green"><div class="kpi-label">Diferencia Acum.</div><div class="kpi-value" id="d-tot-diff" style="font-size:18px">—</div></div>
+    <div class="kpi amber"><div class="kpi-label">Proyección Ajustada</div><div class="kpi-value" id="d-tot-proj" style="color:var(--amber);font-size:18px">—</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Tabla Presupuesto vs Real · Día × Día</span>
+      <span style="font-size:10px;color:var(--text3)">Edita columna "REAL USD" · Resto se calcula automáticamente</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr>
+          <th>DÍA</th><th>FECHA</th><th>CIUDAD</th><th>ACTIVIDADES CLAVE</th>
+          <th class="text-right">PRESUP USD</th>
+          <th class="text-right">REAL USD</th>
+          <th class="text-right">DIFERENCIA</th>
+          <th class="text-right">% DESV.</th>
+          <th class="text-right">ACUM PRESUP</th>
+          <th class="text-right">ACUM REAL</th>
+          <th>SEMÁFORO</th>
+        </tr></thead>
+        <tbody id="diario-tbody"></tbody>
+        <tfoot id="diario-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================== -->
+<!-- TAB 3: CURVA S & BURN RATE -->
+<!-- ====================================================== -->
+<div class="tab-page" id="tab-curvas">
+
+  <div class="panel-row cols2">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Curva S · Presupuesto Acumulado vs Real Acumulado</span></div>
+      <div class="panel-body">
+        <div class="chart-legend" id="curva-legend"></div>
+        <div style="position:relative;height:280px">
+          <canvas id="chart-curva" role="img" aria-label="Curva S mostrando presupuesto acumulado versus gasto real acumulado por día">Línea azul = presupuesto acumulado planificado, línea cian = gasto real acumulado.</canvas>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Burn Rate Diario · Planificado vs Real</span></div>
+      <div class="panel-body">
+        <div class="chart-legend" id="burn-legend"></div>
+        <div style="position:relative;height:280px">
+          <canvas id="chart-burn" role="img" aria-label="Gráfico de barras comparando burn rate diario planificado versus real">Barras azules = planificado, barras cian = real registrado.</canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-row cols3">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Proyección Final Dinámica</span></div>
+      <div class="panel-body">
+        <div style="position:relative;height:200px">
+          <canvas id="chart-proj" role="img" aria-label="Gráfico de proyección final del gasto total">Proyección del gasto final basada en el ritmo de gasto actual.</canvas>
+        </div>
+        <div style="margin-top:12px;display:flex;justify-content:space-between;font-size:11px;font-family:var(--font-mono)">
+          <div><div style="color:var(--text3)">Proyección final</div><div id="proj-valor" style="color:var(--amber);font-size:16px;font-weight:700">—</div></div>
+          <div><div style="color:var(--text3)">vs Presupuesto</div><div id="proj-diff" style="font-size:16px;font-weight:700">—</div></div>
+          <div><div style="color:var(--text3)">Confianza</div><div id="proj-conf" style="color:var(--purple);font-size:14px;font-weight:700">—</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Distribución Gasto Real vs Planificado</span></div>
+      <div class="panel-body">
+        <div style="position:relative;height:200px">
+          <canvas id="chart-real-vs-plan" role="img" aria-label="Comparación del gasto real versus planificado por ciudad">Comparación por ciudad del gasto real versus el planificado.</canvas>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Velocidad de Consumo</span></div>
+      <div class="panel-body" id="velocidad-panel">
+        <div style="text-align:center;padding:20px;color:var(--text3)">Sin datos reales aún.<br>Ingresa gastos en "Presup. vs Real"</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================== -->
+<!-- TAB 4: POR CIUDAD -->
+<!-- ====================================================== -->
+<div class="tab-page" id="tab-ciudades">
+
+  <div id="ciudad-scenario-strip" class="scenario-strip">
+    <label>Escenario:</label>
+    <button class="scen-btn s-cons" id="csb-conservador" onclick="setScenario('conservador')">Conservador $3,500</button>
+    <button class="scen-btn s-base active" id="csb-base" onclick="setScenario('base')">Base $4,000</button>
+    <button class="scen-btn s-hold" id="csb-holgado" onclick="setScenario('holgado')">Holgado $4,500</button>
+  </div>
+
+  <div class="panel-row cols2" style="margin-bottom:0">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Presupuesto por Ciudad</span></div>
+      <div class="panel-body">
+        <div style="position:relative;height:300px">
+          <canvas id="chart-ciudad-detail" role="img" aria-label="Desglose de presupuesto por ciudad y categoría">Desglose de hotel, comida, transporte y actividades por ciudad.</canvas>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Costo por Noche · Comparativa</span></div>
+      <div class="panel-body">
+        <div style="position:relative;height:300px">
+          <canvas id="chart-cpn" role="img" aria-label="Costo total por noche por ciudad">Costo promedio por noche en cada ciudad incluyendo todos los gastos.</canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <div class="panel-header"><span class="panel-title">Control por Ciudad · Detalle Completo</span></div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr>
+          <th>Ciudad</th><th>Noches</th>
+          <th class="text-right">Hotel EUR</th><th class="text-right">Comida EUR</th>
+          <th class="text-right">Transp. EUR</th><th class="text-right">Act. EUR</th>
+          <th class="text-right">Total EUR</th><th class="text-right">Total USD</th>
+          <th class="text-right">Real USD</th><th class="text-right">Dif. USD</th>
+          <th class="text-right">€/noche</th><th>Estado</th>
+        </tr></thead>
+        <tbody id="ciudad-detail-tbody"></tbody>
+        <tfoot id="ciudad-detail-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================== -->
+<!-- TAB 5: POR CATEGORÍA -->
+<!-- ====================================================== -->
+<div class="tab-page" id="tab-categorias">
+
+  <div class="panel-row cols2">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Gasto Real por Categoría</span></div>
+      <div class="panel-body">
+        <div style="position:relative;height:260px">
+          <canvas id="chart-cat-real" role="img" aria-label="Gasto real registrado por categoría de gasto">Distribución del gasto real por categoría.</canvas>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Presupuesto vs Real por Categoría</span></div>
+      <div class="panel-body">
+        <div style="position:relative;height:260px">
+          <canvas id="chart-cat-comp" role="img" aria-label="Comparación presupuesto vs real por categoría">Barras azules = presupuestado, barras cian = real.</canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <div class="panel-header"><span class="panel-title">Análisis por Categoría · Control Financiero</span></div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr>
+          <th>Categoría</th><th class="text-right">Presup. USD</th><th class="text-right">% Presup.</th>
+          <th class="text-right">Real USD</th><th class="text-right">% Real</th>
+          <th class="text-right">Diferencia</th><th class="text-right">% Desv.</th>
+          <th>Progreso</th><th>Estado</th>
+        </tr></thead>
+        <tbody id="cat-tbody"></tbody>
+        <tfoot id="cat-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================== -->
+<!-- TAB 6: RESERVAS -->
+<!-- ====================================================== -->
+<div class="tab-page" id="tab-reservas">
+
+  <div class="panel-row cols2">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Estado de Reservas · Vuelo Principal</span>
+        <span class="badge badge-green">ACCIÓN INMEDIATA</span>
+      </div>
+      <div class="panel-body">
+        <div class="alert-strip alert-green">
+          <span>✓</span><div><strong>COMPRA AHORA:</strong> S/3,220 (≈$860 USD) Air Canada LIM→MAD es precio competitivo con 8 meses de anticipación. Precios históricos suben en Sep-Nov. Con KLM por $919 USD como alternativa.</div>
+        </div>
+        <div class="reserva-row"><div class="reserva-status status-pending"></div><div style="flex:1"><div style="font-weight:600">✈ Air Canada · LIM → MAD</div><div style="font-size:11px;color:var(--text3)">8:00 salida · 18h · 1 escala Montreal (YUL)</div></div><div class="text-right"><div class="mono" style="color:var(--amber)">S/ 3,220</div><div style="font-size:10px;color:var(--text3)">≈ $860 USD</div></div><span class="badge badge-amber">PENDIENTE</span></div>
+        <div class="reserva-row"><div class="reserva-status status-not-booked"></div><div style="flex:1"><div style="font-weight:600">✈ KLM · LIM → MAD (Alt.)</div><div style="font-size:11px;color:var(--text3)">20:10 · 17h25min · 1 escala Amsterdam</div></div><div class="text-right"><div class="mono" style="color:var(--text3)">S/ 3,448</div><div style="font-size:10px;color:var(--text3)">≈ $919 USD</div></div><span class="badge badge-gray">ALTERNATIVA</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Calendario de Compras Recomendado</span></div>
+      <div class="panel-body">
+        <table class="data-table">
+          <thead><tr><th>Qué</th><th>Cuándo Comprar</th><th>Estado</th><th>USD Est.</th></tr></thead>
+          <tbody>
+            <tr><td>Vuelo LIM-MAD (ida+vuelta)</td><td class="mono" style="color:var(--amber)">AHORA · Jun 2026</td><td><span class="badge badge-amber">URGENTE</span></td><td class="mono">$860</td></tr>
+            <tr><td>Vuelo MAD→CDG (o tren)</td><td class="mono">Oct–Nov 2026</td><td><span class="badge badge-gray">Pendiente</span></td><td class="mono">$80–110</td></tr>
+            <tr><td>Hoteles Madrid (maestría)</td><td class="mono">Jul–Ago 2026</td><td><span class="badge badge-gray">Pendiente</span></td><td class="mono">Ya cubierto</td></tr>
+            <tr><td>Hoteles París</td><td class="mono">Oct 2026</td><td><span class="badge badge-gray">Pendiente</span></td><td class="mono">$390</td></tr>
+            <tr><td>Hoteles Suiza</td><td class="mono">Oct 2026</td><td><span class="badge badge-gray">Pendiente</span></td><td class="mono">$454</td></tr>
+            <tr><td>TGV París → Lucerna</td><td class="mono">Nov 2026</td><td><span class="badge badge-gray">Pendiente</span></td><td class="mono">$65</td></tr>
+            <tr><td>Vuelo ZRH → Roma</td><td class="mono">Nov 2026</td><td><span class="badge badge-gray">Pendiente</span></td><td class="mono">$90</td></tr>
+            <tr><td>Hoteles Italia (Roma/Flo/Ven)</td><td class="mono">Nov 2026</td><td><span class="badge badge-gray">Pendiente</span></td><td class="mono">$540</td></tr>
+            <tr><td>Trenes italianos (Trenitalia)</td><td class="mono">Ene 2027</td><td><span class="badge badge-gray">Pendiente</span></td><td class="mono">$75</td></tr>
+            <tr><td>Vuelo VCE → AMS</td><td class="mono">Nov–Dic 2026</td><td><span class="badge badge-gray">Pendiente</span></td><td class="mono">$105</td></tr>
+            <tr><td>Hotel Ámsterdam</td><td class="mono">Nov 2026</td><td><span class="badge badge-gray">Pendiente</span></td><td class="mono">$259</td></tr>
+            <tr><td>Vuelo AMS → PRG</td><td class="mono">Ene 2027</td><td><span class="badge badge-gray">Pendiente</span></td><td class="mono">$80</td></tr>
+            <tr><td>Hotel Praga</td><td class="mono">Dic 2026</td><td><span class="badge badge-gray">Pendiente</span></td><td class="mono">$195</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <div class="panel-header"><span class="panel-title">Hoteles Sugeridos · Links Booking.com</span></div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr><th>Ciudad</th><th>Hotel</th><th class="text-right">€/noche</th><th>Noches</th><th class="text-right">Total €</th><th>Link</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td>🇫🇷 París</td><td>Hotel du Vieux Marais</td><td class="mono text-right">€130</td><td class="mono text-right">3</td><td class="mono text-right">€390</td><td><a href="https://www.booking.com" style="color:var(--blue);font-size:11px">booking.com ↗</a></td><td><span class="badge badge-amber">Pendiente</span></td></tr>
+          <tr><td>🇨🇭 Lucerna</td><td>ibis Styles Luzern City</td><td class="mono text-right">€140</td><td class="mono text-right">2</td><td class="mono text-right">€280</td><td><a href="https://www.booking.com/hotel/ch/ibis-styles-luzern-city.html" style="color:var(--blue);font-size:11px">booking.com ↗</a></td><td><span class="badge badge-amber">Pendiente</span></td></tr>
+          <tr><td>🇨🇭 Interlaken</td><td>Hotel Beausite Interlaken</td><td class="mono text-right">€140</td><td class="mono text-right">1</td><td class="mono text-right">€140</td><td><a href="https://www.booking.com/hotel/ch/beausite-interlaken.html" style="color:var(--blue);font-size:11px">booking.com ↗</a></td><td><span class="badge badge-amber">Pendiente</span></td></tr>
+          <tr><td>🇮🇹 Roma</td><td>Hotel Nazionale Roma</td><td class="mono text-right">€100</td><td class="mono text-right">3</td><td class="mono text-right">€300</td><td><a href="https://www.booking.com/hotel/it/nazionale.html" style="color:var(--blue);font-size:11px">booking.com ↗</a></td><td><span class="badge badge-amber">Pendiente</span></td></tr>
+          <tr><td>🇮🇹 Florencia</td><td>Hotel Delle Nazioni</td><td class="mono text-right">€100</td><td class="mono text-right">1</td><td class="mono text-right">€100</td><td><a href="https://www.booking.com/hotel/it/delle-nazioni.html" style="color:var(--blue);font-size:11px">booking.com ↗</a></td><td><span class="badge badge-amber">Pendiente</span></td></tr>
+          <tr><td>🇮🇹 Venecia</td><td>Hotel Palazzo Vitturi</td><td class="mono text-right">€100</td><td class="mono text-right">1</td><td class="mono text-right">€100</td><td><a href="https://www.booking.com/hotel/it/palazzo-vitturi.html" style="color:var(--blue);font-size:11px">booking.com ↗</a></td><td><span class="badge badge-amber">Pendiente</span></td></tr>
+          <tr><td>🇳🇱 Ámsterdam</td><td>The Social Hub Amsterdam</td><td class="mono text-right">€120</td><td class="mono text-right">2</td><td class="mono text-right">€240</td><td><a href="https://www.booking.com/hotel/nl/the-student-hotel-amsterdam-city.html" style="color:var(--blue);font-size:11px">booking.com ↗</a></td><td><span class="badge badge-amber">Pendiente</span></td></tr>
+          <tr><td>🇨🇿 Praga</td><td>Hotel Golden Crown</td><td class="mono text-right">€85</td><td class="mono text-right">2</td><td class="mono text-right">€170</td><td><a href="https://www.booking.com/hotel/cz/golden-crown.html" style="color:var(--blue);font-size:11px">booking.com ↗</a></td><td><span class="badge badge-amber">Pendiente</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================== -->
+<!-- TAB 7: VUELOS -->
+<!-- ====================================================== -->
+<div class="tab-page" id="tab-vuelos">
+
+  <div class="alert-strip alert-green" style="margin-bottom:16px">
+    <span>✈</span><div><strong>ACCIÓN INMEDIATA:</strong> Compra el vuelo LIM-MAD ahora (Jun 2026). Con 8+ meses de anticipación es precio óptimo. Air Canada S/3,220 (~$860) vs histórico $950-1,200 USD a 3 meses. Precio actual está ~25% por debajo del promedio tardío.</div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Vuelos Internos Europa · Estrategia Completa</span></div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr><th>Tramo</th><th>Tipo</th><th>Aerolínea</th><th>Duración</th><th class="text-right">Rango EUR</th><th class="text-right">Est. Prom. EUR</th><th class="text-right">Est. USD</th><th>Ventana Compra</th><th>Tip</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Madrid → París</strong></td><td><span class="badge badge-blue">Avión</span></td><td>Vueling/Iberia/Ryan</td><td>2h</td><td class="mono text-right">€60–€110</td><td class="mono text-right">€80</td><td class="mono text-right">$86</td><td class="mono" style="color:var(--amber)">Oct–Nov 2026</td><td style="font-size:11px">Vuelo madrugada más barato</td></tr>
+          <tr><td><strong>París → Lucerna</strong></td><td><span class="badge badge-green">Tren TGV</span></td><td>SNCF + SBB</td><td>4h 30min</td><td class="mono text-right">€45–€90</td><td class="mono text-right">€60</td><td class="mono text-right">$65</td><td class="mono" style="color:var(--amber)">Nov 2026</td><td style="font-size:11px">Más cómodo que avión, +paisaje</td></tr>
+          <tr><td><strong>Lucerna → Roma</strong></td><td><span class="badge badge-blue">Avión</span></td><td>EasyJet/Swiss</td><td>1h 40min</td><td class="mono text-right">€60–€110</td><td class="mono text-right">€85</td><td class="mono text-right">$92</td><td class="mono" style="color:var(--amber)">Nov 2026</td><td style="font-size:11px">Sale desde Zúrich (ZRH)</td></tr>
+          <tr><td><strong>Roma → Florencia</strong></td><td><span class="badge badge-green">Tren</span></td><td>Trenitalia Frecciarossa</td><td>1h 30min</td><td class="mono text-right">€25–€55</td><td class="mono text-right">€35</td><td class="mono text-right">$38</td><td class="mono" style="color:var(--cyan)">Ene 2027</td><td style="font-size:11px">Alta velocidad, muy puntual</td></tr>
+          <tr><td><strong>Florencia → Venecia</strong></td><td><span class="badge badge-green">Tren</span></td><td>Trenitalia</td><td>2h</td><td class="mono text-right">€20–€40</td><td class="mono text-right">€35</td><td class="mono text-right">$38</td><td class="mono" style="color:var(--cyan)">Ene 2027</td><td style="font-size:11px">Trenes frecuentes, flexible</td></tr>
+          <tr><td><strong>Venecia → Ámsterdam</strong></td><td><span class="badge badge-blue">Avión</span></td><td>Ryanair/EasyJet</td><td>2h 10min</td><td class="mono text-right">€70–€130</td><td class="mono text-right">€100</td><td class="mono text-right">$108</td><td class="mono" style="color:var(--amber)">Nov–Dic 2026</td><td style="font-size:11px">VCE o TSF (Treviso, más barato)</td></tr>
+          <tr><td><strong>Ámsterdam → Praga</strong></td><td><span class="badge badge-blue">Avión</span></td><td>Transavia/Wizz</td><td>1h 50min</td><td class="mono text-right">€55–€100</td><td class="mono text-right">€75</td><td class="mono text-right">$81</td><td class="mono" style="color:var(--cyan)">Ene 2027</td><td style="font-size:11px">Cuidado con equipaje de mano</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="5"><strong>TOTAL VUELOS/TRENES INTERNOS</strong></td><td class="mono text-right">€470</td><td class="mono text-right"><strong>$508</strong></td><td colspan="2" style="font-size:11px;color:var(--text3)">Escenario base estimado</td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================== -->
+<!-- TAB 8: CONFIGURACIÓN -->
+<!-- ====================================================== -->
+<div class="tab-page" id="tab-config">
+
+  <div class="panel-row cols2">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Parámetros Generales</span></div>
+      <div class="panel-body">
+        <div class="cfg-section">
+          <div class="cfg-title">Financiero</div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Presupuesto Total Tours (USD)</div><div class="cfg-sub">Disponible para toda Europa excl. LIM-MAD</div></div><div style="display:flex;align-items:center;gap:6px"><input type="number" id="cfg-budget" value="4000" min="1000" max="15000" step="100"> <span style="font-size:10px;color:var(--text3)">USD</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Tipo de Cambio EUR/USD</div><div class="cfg-sub">1 EUR = X USD</div></div><div style="display:flex;align-items:center;gap:6px"><input type="number" id="cfg-tc" value="1.08" min="0.8" max="1.5" step="0.01"> <span style="font-size:10px;color:var(--text3)">USD</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">% Fondo de Emergencia</div><div class="cfg-sub">Reservado del presupuesto total</div></div><div style="display:flex;align-items:center;gap:6px"><input type="number" id="cfg-emerg" value="10" min="0" max="30" step="1"> <span style="font-size:10px;color:var(--text3)">%</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Vuelo LIM–MAD (USD)</div><div class="cfg-sub">Referencia, presupuestado aparte</div></div><div style="display:flex;align-items:center;gap:6px"><input type="number" id="cfg-flight-main" value="860" min="400" max="2000" step="10"> <span style="font-size:10px;color:var(--text3)">USD</span></div></div>
+        </div>
+        <div class="cfg-section">
+          <div class="cfg-title">Noches por Ciudad</div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇫🇷 París</div></div><div><input type="number" id="cfg-d-paris" value="3" min="1" max="7"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇨🇭 Suiza (Lucerna/Interlaken)</div></div><div><input type="number" id="cfg-d-suiza" value="3" min="1" max="7"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇮🇹 Roma</div></div><div><input type="number" id="cfg-d-roma" value="3" min="1" max="7"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇮🇹 Florencia</div></div><div><input type="number" id="cfg-d-florencia" value="1" min="1" max="4"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇮🇹 Venecia</div></div><div><input type="number" id="cfg-d-venecia" value="1" min="1" max="3"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇳🇱 Ámsterdam</div></div><div><input type="number" id="cfg-d-amsterdam" value="2" min="1" max="6"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇨🇿 Praga</div></div><div><input type="number" id="cfg-d-praga" value="2" min="1" max="5"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
+          <div style="background:var(--bg4);border-radius:var(--r);padding:10px;margin-top:10px;font-family:var(--font-mono);font-size:11px">
+            Total: <strong id="cfg-total-nights" style="color:var(--blue)">15</strong> noches / <strong id="cfg-total-days" style="color:var(--blue)">16</strong> días de viaje
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Costos Unitarios por Ciudad</span></div>
+      <div class="panel-body">
+        <div class="cfg-section">
+          <div class="cfg-title">Hotel por Noche (EUR)</div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">París (€/noche)</div></div><div><input type="number" id="cfg-h-paris" value="130" min="50" max="500"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Suiza (€/noche)</div></div><div><input type="number" id="cfg-h-suiza" value="140" min="60" max="500"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Italia prom. (€/noche)</div></div><div><input type="number" id="cfg-h-italia" value="100" min="40" max="400"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Ámsterdam (€/noche)</div></div><div><input type="number" id="cfg-h-amsterdam" value="120" min="50" max="400"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Praga (€/noche)</div></div><div><input type="number" id="cfg-h-praga" value="85" min="30" max="250"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
+        </div>
+        <div class="cfg-section">
+          <div class="cfg-title">Comida por Día (EUR)</div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">París (€/día)</div></div><div><input type="number" id="cfg-f-paris" value="50" min="20" max="150"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Suiza (€/día)</div></div><div><input type="number" id="cfg-f-suiza" value="55" min="20" max="150"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Italia (€/día)</div></div><div><input type="number" id="cfg-f-italia" value="40" min="20" max="120"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Ámsterdam (€/día)</div></div><div><input type="number" id="cfg-f-amsterdam" value="45" min="20" max="120"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
+          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Praga (€/día)</div></div><div><input type="number" id="cfg-f-praga" value="30" min="15" max="100"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
+        </div>
+        <button onclick="applyConfig()" style="width:100%;background:var(--blue-d);border:1px solid var(--blue);color:#fff;padding:10px;border-radius:var(--r);cursor:pointer;font-family:var(--font-mono);font-size:12px;margin-top:8px">↺ APLICAR Y RECALCULAR TODO</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHARTS SCRIPT -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ===================== STATE =====================
+const S = {
+  scenario: 'base',
+  budget: 4000,
+  tc: 1.08,
+  emergPct: 10,
+  flightMain: 860,
+  days: { paris:3, suiza:3, roma:3, florencia:1, venecia:1, amsterdam:2, praga:2 },
+  hotel: { paris:130, suiza:140, italia:100, amsterdam:120, praga:85 },
+  food: { paris:50, suiza:55, italia:40, amsterdam:45, praga:30 },
+  scenarios: { conservador:3500, base:4000, holgado:4500 },
+  reales: {},
+  charts: {}
+};
+
+// ===================== CITIES DEF =====================
+const CITIES = [
+  { id:'madrid',    flag:'🇪🇸', name:'Madrid',    dkey:null,      nights:1, hotelKey:null,        foodKey:null,         transport:0,   entries:0,    dates:'1 Mar',    acts:'Día libre post-maestría · Preparativos salida' },
+  { id:'paris',     flag:'🇫🇷', name:'París',     dkey:'paris',   nights:3, hotelKey:'paris',     foodKey:'paris',      transport:86,  entries:75,   dates:'2–4 Mar',  acts:'Louvre €17 · Torre Eiffel €26 · Montmartre' },
+  { id:'suiza',     flag:'🇨🇭', name:'Suiza',     dkey:'suiza',   nights:3, hotelKey:'suiza',     foodKey:'suiza',      transport:65,  entries:85,   dates:'5–7 Mar',  acts:'TGV París-Lucerna · Alpes · Interlaken' },
+  { id:'roma',      flag:'🇮🇹', name:'Roma',      dkey:'roma',    nights:3, hotelKey:'italia',    foodKey:'italia',     transport:92,  entries:60,   dates:'8–10 Mar', acts:'Coliseo €16 · Vaticano €20 · Fontana Trevi' },
+  { id:'florencia', flag:'🇮🇹', name:'Florencia', dkey:'florencia',nights:1,hotelKey:'italia',   foodKey:'italia',     transport:38,  entries:25,   dates:'11 Mar',   acts:'Uffizi €20 · Duomo · Ponte Vecchio' },
+  { id:'venecia',   flag:'🇮🇹', name:'Venecia',   dkey:'venecia', nights:1, hotelKey:'italia',    foodKey:'italia',     transport:38,  entries:20,   dates:'12 Mar',   acts:'Góndola €80 · Plaza San Marcos · Rialto' },
+  { id:'amsterdam', flag:'🇳🇱', name:'Ámsterdam', dkey:'amsterdam',nights:2,hotelKey:'amsterdam',foodKey:'amsterdam',  transport:108, entries:55,   dates:'13–14 Mar',acts:'VCE→AMS €100 · Rijksmuseum €22 · Canales' },
+  { id:'praga',     flag:'🇨🇿', name:'Praga',     dkey:'praga',   nights:2, hotelKey:'praga',     foodKey:'praga',      transport:81,  entries:40,   dates:'15 Mar',   acts:'AMS→PRG €75 · Castillo · Puente Carlos' },
+];
+
+const CATS = ['Hoteles','Vuelos Internos','Comida','Actividades/Entradas','Contingencia'];
+const CAT_COLORS = ['#3b82f6','#f59e0b','#22c55e','#a855f7','#06b6d4'];
+const INTERNAL_FLIGHTS = { conservador:420, base:508, holgado:650 };
+const MISC = { conservador:100, base:200, holgado:350 };
+const SCEN_MULT = { conservador:0.88, base:1.0, holgado:1.14 };
+
+// ===================== CALC =====================
+function getCityBudget(c) {
+  const m = SCEN_MULT[S.scenario];
+  const tc = S.tc;
+  const nights = c.dkey ? S.days[c.dkey] : (c.id==='madrid'?1:0);
+  const hotelRate = c.hotelKey ? S.hotel[c.hotelKey] : 0;
+  const foodRate = c.foodKey ? S.food[c.foodKey] : (S.food.paris * 0.8);
+  const hotel = nights * hotelRate * m;
+  const food = nights * foodRate * m;
+  const transport = c.transport * m;
+  const entries = c.entries * m;
+  const totalEur = hotel + food + transport/tc + entries/tc;
+  const totalUsd = hotel*tc + food*tc + transport + entries;
+  return { hotel, food, transport, entries, totalEur, totalUsd, nights, hotelRate, foodRate };
+}
+
+function getTotals() {
+  let hotel=0, food=0, transport=0, entries=0, totalUsd=0, totalEur=0;
+  CITIES.forEach(c => {
+    const b = getCityBudget(c);
+    hotel += b.hotel * S.tc;
+    food += b.food * S.tc;
+    transport += b.transport;
+    entries += b.entries;
+    totalUsd += b.totalUsd;
+    totalEur += b.totalEur;
+  });
+  const intFlights = INTERNAL_FLIGHTS[S.scenario];
+  const misc = MISC[S.scenario];
+  return { hotel, food, transport, entries, totalUsd, totalEur, intFlights, misc, grandTotal: totalUsd + misc };
+}
+
+function getRealTotals() {
+  let totalReal = 0, daysWithData = 0;
+  Object.values(S.reales).forEach(v => {
+    if(v !== '' && v !== undefined && !isNaN(parseFloat(v))) {
+      totalReal += parseFloat(v); daysWithData++;
+    }
+  });
+  return { totalReal, daysWithData };
+}
+
+function getCityReal(cityId) {
+  const days = buildDays();
+  let total = 0;
+  days.forEach(d => { if(d.cityId===cityId && S.reales[d.idx]!==undefined && S.reales[d.idx]!=='') total += parseFloat(S.reales[d.idx])||0; });
+  return total;
+}
+
+function getCatBudget() {
+  const t = getTotals();
+  const budget = S.scenarios[S.scenario];
+  const emergAmt = budget * S.emergPct / 100;
+  return [t.hotel, t.intFlights, t.food, t.entries, emergAmt];
+}
+
+function getCatReal() {
+  const days = buildDays();
+  let hotel=0, transport=0, food=0, entries=0, misc=0;
+  days.forEach((d,i) => {
+    const r = parseFloat(S.reales[i]) || 0;
+    if(r > 0) {
+      const b = getCityBudget(d.cityObj);
+      const total = b.totalUsd || 1;
+      hotel += r * (b.hotel*S.tc/total);
+      transport += r * (b.transport/total);
+      food += r * (b.food*S.tc/total);
+      entries += r * (b.entries/total);
+    }
+  });
+  return [hotel, transport, food, entries, misc];
+}
+
+// ===================== ITINERARY DAYS =====================
+function buildDays() {
+  const days = [];
+  const allDays = [
+    {cityId:'madrid', cityObj:CITIES[0]},
+    {cityId:'paris', cityObj:CITIES[1]},{cityId:'paris', cityObj:CITIES[1]},{cityId:'paris', cityObj:CITIES[1]},
+    {cityId:'suiza', cityObj:CITIES[2]},{cityId:'suiza', cityObj:CITIES[2]},{cityId:'suiza', cityObj:CITIES[2]},
+    {cityId:'roma', cityObj:CITIES[3]},{cityId:'roma', cityObj:CITIES[3]},{cityId:'roma', cityObj:CITIES[3]},
+    {cityId:'florencia', cityObj:CITIES[4]},
+    {cityId:'venecia', cityObj:CITIES[5]},
+    {cityId:'amsterdam', cityObj:CITIES[6]},{cityId:'amsterdam', cityObj:CITIES[6]},
+    {cityId:'praga', cityObj:CITIES[7]},
+  ];
+  const acts = [
+    'Día libre · Ajuste horario · Preparación',
+    'Vuelo MAD→CDG · Check-in · Barrio Marais · Cena Seine',
+    'Louvre (€17) · Jardin Tuileries · Opera · Champs-Élysées',
+    'Torre Eiffel (€26) · Champ de Mars · Montmartre · Sacré-Cœur',
+    'TGV París→Lucerna (€60) · Lago Lucerna · Puente de la Capilla',
+    'Excursión Interlaken · Vistas Jungfrau · Actividades Alpes',
+    'Día en Lucerna · Castillo Gutsch · Mercado central',
+    'Vuelo ZRH→FCO (€85) · Trastevere · Fontana di Trevi · Noche romana',
+    'Coliseo + Foro Romano (€16) · Palatino · Boca de la Verdad',
+    'Vaticano + Capilla Sixtina (€20) · Castillo Sant\'Angelo',
+    'Tren Roma→Florencia (€35) · Duomo · Uffizi (€20) · Ponte Vecchio',
+    'Tren Florencia→Venecia (€35) · San Marcos · Rialto · Góndola (€80)',
+    'Vuelo VCE→AMS (€100) · Canales · Leidseplein · Jordaan',
+    'Rijksmuseum (€22) · Casa de Ana Frank (€16) · Bicicleta · Mercado',
+    'Vuelo AMS→PRG (€75) · Castillo de Praga · Puente Carlos · ¡Fin tour!',
+  ];
+  const baseBudgets = [38,210,180,185,195,185,165,215,175,180,200,220,230,185,180];
+  const m = SCEN_MULT[S.scenario];
+  const start = new Date(2027,2,1);
+  allDays.forEach((d,i) => {
+    const dt = new Date(start); dt.setDate(dt.getDate()+i);
+    days.push({
+      idx:i, day:i+1,
+      date:dt.toLocaleDateString('es-PE',{day:'2-digit',month:'short'}),
+      cityId:d.cityId, cityObj:d.cityObj,
+      flag:d.cityObj.flag, city:d.cityObj.name,
+      activity:acts[i],
+      budget: Math.round(baseBudgets[i]*m),
+      real: S.reales[i] !== undefined ? S.reales[i] : ''
+    });
+  });
+  return days;
+}
+
+// ===================== SEMÁFORO =====================
+function getSemaforo(budgetUsedPct) {
+  if(budgetUsedPct <= 85) return {type:'green', label:'EN RANGO', emoji:'●'};
+  if(budgetUsedPct <= 100) return {type:'amber', label:'ATENCIÓN', emoji:'●'};
+  return {type:'red', label:'EXCEDIDO', emoji:'●'};
+}
+
+function renderSemaforo(val, container, big=false) {
+  if(!container) return;
+  const s = getSemaforo(val);
+  const cls = 'sem-'+s.type;
+  const sz = big ? 'font-size:16px;padding:6px 14px' : '';
+  container.innerHTML = `<span class="semaforo ${cls}" style="${sz}"><span class="sem-dot"></span>${s.label}</span>`;
+}
+
+// ===================== CHARTS =====================
+function destroyChart(key) {
+  if(S.charts[key]) { try{S.charts[key].destroy();}catch(e){} S.charts[key]=null; }
+}
+
+function renderDonut() {
+  destroyChart('donut');
+  const ctx = document.getElementById('chart-donut');
+  if(!ctx) return;
+  const catBudgets = getCatBudget();
+  const total = catBudgets.reduce((a,b)=>a+b,0);
+  const legEl = document.getElementById('cat-legend');
+  if(legEl) legEl.innerHTML = CATS.map((c,i)=>`<span><span class="leg-dot" style="background:${CAT_COLORS[i]}"></span>${c} ${Math.round(catBudgets[i]/total*100)}%</span>`).join('');
+  S.charts.donut = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels:CATS, datasets:[{data:catBudgets.map(v=>Math.round(v)), backgroundColor:CAT_COLORS, borderColor:'#f0f2f5', borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: $${Math.round(ctx.raw).toLocaleString()}`}}},cutout:'60%'}
+  });
+}
+
+function renderCiudadBar() {
+  destroyChart('ciudadbar');
+  const ctx = document.getElementById('chart-ciudad-bar');
+  if(!ctx) return;
+  const labels=CITIES.map(c=>c.flag+' '+c.name.substring(0,3));
+  const budgets=CITIES.map(c=>Math.round(getCityBudget(c).totalUsd));
+  const reales=CITIES.map(c=>{ const r=getCityReal(c.id); return r>0?Math.round(r):null; });
+  S.charts.ciudadbar = new Chart(ctx,{
+    type:'bar',
+    data:{labels, datasets:[
+      {label:'Presup.',data:budgets,backgroundColor:'#1d4ed8',borderColor:'#3b82f6',borderWidth:1},
+      {label:'Real',data:reales,backgroundColor:'#0e6e56',borderColor:'#22c55e',borderWidth:1}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:10}}},y:{ticks:{color:'#6b7280',font:{size:10},callback:v=>'$'+v},grid:{color:'#e5e7eb'}}}}
+  });
+}
+
+function renderCurvaS() {
+  destroyChart('curvas');
+  const ctx = document.getElementById('chart-curva');
+  if(!ctx) return;
+  const days = buildDays();
+  const labels = days.map(d=>'D'+d.day);
+  let cumPlan=0, cumReal=0;
+  const planData=[], realData=[];
+  days.forEach((d,i)=>{ cumPlan+=d.budget; planData.push(Math.round(cumPlan)); const r=parseFloat(S.reales[i])||0; if(S.reales[i]!==undefined&&S.reales[i]!==''){cumReal+=r;} realData.push(cumReal>0?Math.round(cumReal):null); });
+  const legEl=document.getElementById('curva-legend');
+  if(legEl) legEl.innerHTML=`<span><span class="leg-dot" style="background:#3b82f6"></span>Presupuesto Acum.</span><span><span class="leg-dot" style="background:#06b6d4"></span>Real Acum.</span>`;
+  S.charts.curvas = new Chart(ctx,{
+    type:'line',
+    data:{labels, datasets:[
+      {label:'Presupuesto Acum.',data:planData,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.1)',tension:0.3,borderWidth:2,pointRadius:3,pointBackgroundColor:'#3b82f6'},
+      {label:'Real Acum.',data:realData,borderColor:'#06b6d4',backgroundColor:'rgba(6,182,212,.1)',tension:0.3,borderWidth:2,borderDash:[5,3],pointRadius:4,pointBackgroundColor:'#06b6d4',spanGaps:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:10}}},y:{ticks:{color:'#6b7280',font:{size:10},callback:v=>'$'+v},grid:{color:'#e5e7eb'}}}}
+  });
+}
+
+function renderBurnRate() {
+  destroyChart('burn');
+  const ctx = document.getElementById('chart-burn');
+  if(!ctx) return;
+  const days=buildDays();
+  const labels=days.map(d=>'D'+d.day);
+  const planData=days.map(d=>d.budget);
+  const realData=days.map((d,i)=>{ const v=S.reales[i]; return (v!==undefined&&v!=='') ? Math.round(parseFloat(v)||0) : null; });
+  const legEl=document.getElementById('burn-legend');
+  if(legEl) legEl.innerHTML=`<span><span class="leg-dot" style="background:#1d4ed8"></span>Planificado</span><span><span class="leg-dot" style="background:#0e6e56;border:1px dashed #22c55e"></span>Real</span>`;
+  S.charts.burn = new Chart(ctx,{
+    type:'bar',
+    data:{labels, datasets:[
+      {label:'Planificado',data:planData,backgroundColor:'rgba(29,78,216,0.7)',borderColor:'#3b82f6',borderWidth:1},
+      {label:'Real',data:realData,backgroundColor:'rgba(14,110,86,0.8)',borderColor:'#22c55e',borderWidth:1}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},stacked:false},y:{ticks:{color:'#6b7280',font:{size:10},callback:v=>'$'+v},grid:{color:'#e5e7eb'}}}}
+  });
+}
+
+function renderProjection() {
+  destroyChart('proj');
+  const ctx=document.getElementById('chart-proj');
+  if(!ctx) return;
+  const {totalReal,daysWithData}=getRealTotals();
+  const days=buildDays();
+  const totPlan=days.reduce((a,d)=>a+d.budget,0);
+  const budget=S.scenarios[S.scenario];
+  let projFinal=totPlan;
+  let conf='N/D';
+  if(daysWithData>=3){
+    const avgReal=totalReal/daysWithData;
+    projFinal=Math.round(avgReal*15);
+    const confiabilidad=Math.min(100,Math.round(daysWithData/15*100));
+    conf=confiabilidad+'%';
+  }
+  const diff=budget-projFinal;
+  document.getElementById('proj-valor').textContent='$'+projFinal.toLocaleString();
+  const pdEl=document.getElementById('proj-diff');
+  pdEl.textContent=(diff>=0?'+':'')+('$'+Math.abs(diff).toLocaleString());
+  pdEl.style.color=diff>=0?'var(--green)':'var(--red)';
+  document.getElementById('proj-conf').textContent=conf;
+  S.charts.proj=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['Presupuesto','Proyección'],
+      datasets:[{data:[budget,projFinal],backgroundColor:['rgba(29,78,216,0.7)','rgba(245,158,11,0.7)'],borderColor:['#3b82f6','#f59e0b'],borderWidth:1}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#6b7280',callback:v=>'$'+v},grid:{color:'#e5e7eb'}},x:{ticks:{color:'#6b7280'}}}}
+  });
+}
+
+function renderCatCharts() {
+  destroyChart('catreal');
+  destroyChart('catcomp');
+  const ctxR=document.getElementById('chart-cat-real');
+  const ctxC=document.getElementById('chart-cat-comp');
+  const catBudgets=getCatBudget();
+  const catReales=getCatReal();
+  if(ctxR){
+    S.charts.catreal=new Chart(ctxR,{
+      type:'doughnut',
+      data:{labels:CATS,datasets:[{data:catBudgets.map(v=>Math.round(v)),backgroundColor:CAT_COLORS,borderColor:'#f0f2f5',borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#6b7280',font:{size:11},boxWidth:12}}}}
+    });
+  }
+  if(ctxC){
+    S.charts.catcomp=new Chart(ctxC,{
+      type:'bar',
+      data:{labels:CATS,datasets:[
+        {label:'Presup.',data:catBudgets.map(v=>Math.round(v)),backgroundColor:'rgba(29,78,216,0.7)',borderColor:'#3b82f6',borderWidth:1},
+        {label:'Real',data:catReales.map(v=>Math.round(v)),backgroundColor:'rgba(6,182,212,0.7)',borderColor:'#06b6d4',borderWidth:1}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:9},maxRotation:45}},y:{ticks:{color:'#6b7280',callback:v=>'$'+v},grid:{color:'#e5e7eb'}}}}
+    });
+  }
+}
+
+function renderCiudadDetail() {
+  destroyChart('ciudaddet');
+  destroyChart('cpn');
+  const ctxD=document.getElementById('chart-ciudad-detail');
+  const ctxP=document.getElementById('chart-cpn');
+  if(ctxD){
+    const labels=CITIES.map(c=>c.flag+' '+c.name.substring(0,4));
+    const hData=CITIES.map(c=>Math.round(getCityBudget(c).hotel*S.tc));
+    const fData=CITIES.map(c=>Math.round(getCityBudget(c).food*S.tc));
+    const tData=CITIES.map(c=>Math.round(getCityBudget(c).transport));
+    const eData=CITIES.map(c=>Math.round(getCityBudget(c).entries));
+    S.charts.ciudaddet=new Chart(ctxD,{
+      type:'bar',
+      data:{labels, datasets:[
+        {label:'Hotel',data:hData,backgroundColor:'rgba(59,130,246,0.7)'},
+        {label:'Comida',data:fData,backgroundColor:'rgba(34,197,94,0.7)'},
+        {label:'Transp.',data:tData,backgroundColor:'rgba(245,158,11,0.7)'},
+        {label:'Act.',data:eData,backgroundColor:'rgba(168,85,247,0.7)'},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true,ticks:{color:'#6b7280',font:{size:9}}},y:{stacked:true,ticks:{color:'#6b7280',callback:v=>'$'+v},grid:{color:'#e5e7eb'}}},plugins:{legend:{labels:{color:'#6b7280',font:{size:10},boxWidth:10}}}}
+    });
+  }
+  if(ctxP){
+    const labels=CITIES.filter(c=>c.dkey).map(c=>c.flag+' '+c.name.substring(0,4));
+    const cpn=CITIES.filter(c=>c.dkey).map(c=>{ const b=getCityBudget(c); return b.nights>0?Math.round(b.totalUsd/b.nights):0; });
+    S.charts.cpn=new Chart(ctxP,{
+      type:'bar',
+      data:{labels,datasets:[{label:'USD/noche',data:cpn,backgroundColor:'rgba(6,182,212,0.7)',borderColor:'#06b6d4',borderWidth:1}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',callback:v=>'$'+v},grid:{color:'#e5e7eb'}},y:{ticks:{color:'#6b7280',font:{size:10}}}}}
+    });
+  }
+}
+
+function renderRealVsPlan() {
+  destroyChart('rvp');
+  const ctx=document.getElementById('chart-real-vs-plan');
+  if(!ctx) return;
+  const days=buildDays();
+  const labels=days.map(d=>'D'+d.day);
+  const plan=days.map(d=>d.budget);
+  const real=days.map((d,i)=>S.reales[i]!==undefined&&S.reales[i]!==''?Math.round(parseFloat(S.reales[i])||0):null);
+  S.charts.rvp=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Planificado',data:plan,borderColor:'#3b82f6',tension:0.3,borderWidth:1.5,pointRadius:2},
+      {label:'Real',data:real,borderColor:'#f59e0b',tension:0.3,borderWidth:1.5,pointRadius:3,borderDash:[4,2],spanGaps:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b7280',font:{size:10},boxWidth:10}}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}}},y:{ticks:{color:'#6b7280',callback:v=>'$'+v},grid:{color:'#e5e7eb'}}}}
+  });
+}
+
+// ===================== TABLES =====================
+function renderResumenTable() {
+  const tbody=document.getElementById('resumen-tbody');
+  const tfoot=document.getElementById('resumen-tfoot');
+  if(!tbody) return;
+  let totH=0,totF=0,totT=0,totE=0,totUsd=0;
+  let html='';
+  CITIES.forEach(c=>{
+    const b=getCityBudget(c);
+    const cpn=b.nights>0?Math.round(b.totalUsd/b.nights):0;
+    totH+=b.hotel*S.tc; totF+=b.food*S.tc; totT+=b.transport; totE+=b.entries; totUsd+=b.totalUsd;
+    const statusPct=b.totalUsd/(S.scenarios[S.scenario]/CITIES.length)*100;
+    const badge=statusPct<80?'badge-green':statusPct<110?'badge-amber':'badge-red';
+    html+=`<tr>
+      <td>${c.flag} <strong>${c.name}</strong><div style="font-size:10px;color:var(--text3)">${c.dates}</div></td>
+      <td class="mono text-center">${b.nights}</td>
+      <td class="mono text-right">$${Math.round(b.hotel*S.tc).toLocaleString()}</td>
+      <td class="mono text-right">$${Math.round(b.food*S.tc).toLocaleString()}</td>
+      <td class="mono text-right">$${Math.round(b.transport).toLocaleString()}</td>
+      <td class="mono text-right">$${Math.round(b.entries).toLocaleString()}</td>
+      <td class="mono text-right"><strong>$${Math.round(b.totalUsd).toLocaleString()}</strong></td>
+      <td class="mono text-right">${cpn>0?'$'+cpn:'—'}</td>
+      <td><span class="badge ${badge}">€${Math.round(b.hotelRate??0)}/n</span></td>
+    </tr>`;
+  });
+  tbody.innerHTML=html;
+  const t=getTotals();
+  tfoot.innerHTML=`<tr><td colspan="2">TOTAL TOURS EUROPA</td><td class="mono text-right">$${Math.round(totH).toLocaleString()}</td><td class="mono text-right">$${Math.round(totF).toLocaleString()}</td><td class="mono text-right">$${Math.round(totT).toLocaleString()}</td><td class="mono text-right">$${Math.round(totE).toLocaleString()}</td><td class="mono text-right"><strong style="color:var(--amber)">$${Math.round(t.grandTotal).toLocaleString()}</strong></td><td class="mono text-right">$${Math.round(t.grandTotal/15)}</td><td></td></tr>`;
+}
+
+// ===================== DAY SUBCATEGORY DATA =====================
+// Per-day breakdown: [vuelo/tren, hotel, comida, transpLocal, actividades]
+const DAY_CATS = ['✈ Vuelo/Tren','🏨 Hotel','🍽 Comida','🚇 Transp. Local','🎟 Actividades'];
+const DAY_CAT_KEYS = ['vuelo','hotel','comida','transp','activ'];
+
+function getDaySubBudgets(dayIdx) {
+  // Returns {vuelo, hotel, comida, transp, activ} in USD for that day
+  const m = SCEN_MULT[S.scenario];
+  // Lookup city for this day
+  const cityMap = [
+    'madrid','paris','paris','paris',
+    'suiza','suiza','suiza',
+    'roma','roma','roma',
+    'florencia','venecia',
+    'amsterdam','amsterdam',
+    'praga'
+  ];
+  const cityId = cityMap[dayIdx] || 'paris';
+  const cityObj = CITIES.find(c=>c.id===cityId);
+  if(!cityObj) return {vuelo:0,hotel:0,comida:0,transp:0,activ:0};
+
+  const b = getCityBudget(cityObj);
+  const nights = b.nights || 1;
+
+  // Vuelo only on travel days (day 0=Madrid free, 1=fly to Paris, 4=TGV, 7=fly to Rome, 10=train, 11=train+arrive Venice, 12=fly AMS, 14=fly PRG)
+  const flightDays = {1:86,4:65,7:92,10:38,11:38,12:108,14:81};
+  const vueloPlan = flightDays[dayIdx] ? Math.round(flightDays[dayIdx]*m) : 0;
+
+  // Hotel: split per night
+  const hotelPlan = Math.round((b.hotel * S.tc) / nights);
+
+  // Food per day
+  const foodPlan = Math.round(b.food * S.tc / nights);
+
+  // Local transport (metro, bus, taxi) — fixed per city
+  const localTransp = {madrid:10,paris:15,suiza:10,roma:12,florencia:8,venecia:10,amsterdam:14,praga:10};
+  const transpPlan = Math.round((localTransp[cityId]||10)*m);
+
+  // Activities per day
+  const activPlan = Math.round((b.entries / nights));
+
+  return {vuelo:vueloPlan, hotel:hotelPlan, comida:foodPlan, transp:transpPlan, activ:activPlan};
+}
+
+function getSubReal(dayIdx, catKey) {
+  const key = `r_${dayIdx}_${catKey}`;
+  const v = S.reales[key];
+  return (v !== undefined && v !== '') ? parseFloat(v)||0 : null;
+}
+
+function getDayTotalReal(dayIdx) {
+  let total = 0; let hasAny = false;
+  DAY_CAT_KEYS.forEach(k => {
+    const v = getSubReal(dayIdx, k);
+    if(v !== null) { total += v; hasAny = true; }
+  });
+  return hasAny ? total : null;
+}
+
+function renderDiarioTable() {
+  const tbody=document.getElementById('diario-tbody');
+  const tfoot=document.getElementById('diario-tfoot');
+  if(!tbody) return;
+  const days=buildDays();
+  let cumPlan=0, cumReal=0, html='';
+  let totPlan=0, totReal=0, daysData=0;
+
+  days.forEach((d,i)=>{
+    const subs = getDaySubBudgets(i);
+    const dayBudget = subs.vuelo + subs.hotel + subs.comida + subs.transp + subs.activ;
+    cumPlan += dayBudget;
+    totPlan += dayBudget;
+
+    const dayRealTotal = getDayTotalReal(i);
+    if(dayRealTotal !== null){ cumReal += dayRealTotal; totReal += dayRealTotal; daysData++; }
+
+    const diff = dayRealTotal !== null ? dayBudget - dayRealTotal : null;
+    const diffPct = dayRealTotal !== null && dayBudget>0 ? ((dayRealTotal-dayBudget)/dayBudget*100) : null;
+    const diffCls = diff===null?'neu':diff>=0?'pos':'neg';
+    const diffStr = diff===null?'—':(diff>=0?'+':'')+' $'+Math.abs(Math.round(diff));
+    const pctStr = diffPct===null?'—':(diffPct>=0?'+':'')+diffPct.toFixed(1)+'%';
+    const sem = dayRealTotal!==null ? getSemaforo((cumReal/cumPlan)*100) : {type:'blue',label:'PENDIENTE'};
+    const semBadge = dayRealTotal===null
+      ? `<span class="badge badge-blue">PENDIENTE</span>`
+      : sem.type==='green'?`<span class="badge badge-green">✓ OK</span>`
+      : sem.type==='amber'?`<span class="badge badge-amber">△ ATENCIÓN</span>`
+      : `<span class="badge badge-red">✕ EXCEDIDO</span>`;
+
+    // Header row for the day
+    html += `<tr style="background:var(--bg4);border-top:2px solid var(--border2)">
+      <td class="mono text-center" style="color:var(--blue);font-weight:700;font-size:13px">D${d.day}</td>
+      <td class="mono" style="font-size:11px;color:var(--text3)">${d.date}</td>
+      <td colspan="2"><strong>${d.flag} ${d.city}</strong> <span style="font-size:10px;color:var(--text3);font-weight:400">— ${d.activity}</span></td>
+      <td class="mono text-right" style="font-weight:700;color:var(--blue)">$${dayBudget}</td>
+      <td class="mono text-right" style="font-weight:700;color:var(--cyan)">${dayRealTotal!==null?'$'+Math.round(dayRealTotal):'—'}</td>
+      <td class="${diffCls} text-right" style="font-weight:700">${diffStr}</td>
+      <td class="${diffPct!==null?(Math.abs(diffPct)<10?'pos':Math.abs(diffPct)<25?'neu':'neg'):'neu'} text-right" style="font-size:11px">${pctStr}</td>
+      <td class="mono text-right" style="font-size:11px;color:var(--text3)">$${Math.round(cumPlan)}</td>
+      <td class="mono text-right" style="font-size:11px;color:var(--cyan)">${cumReal>0?'$'+Math.round(cumReal):'—'}</td>
+      <td>${semBadge}</td>
+    </tr>`;
+
+    // Subcategory rows
+    DAY_CAT_KEYS.forEach((catKey, ci) => {
+      const catLabel = DAY_CATS[ci];
+      const catBudget = subs[catKey];
+      if(catBudget === 0 && catKey === 'vuelo') return; // skip if no flight that day
+      const rKey = `r_${i}_${catKey}`;
+      const rStr = S.reales[rKey] !== undefined ? S.reales[rKey] : '';
+      const rVal = rStr !== '' ? parseFloat(rStr)||0 : null;
+      const subDiff = rVal !== null ? catBudget - rVal : null;
+      const subDiffCls = subDiff===null?'neu':subDiff>=0?'pos':'neg';
+      const subDiffStr = subDiff===null?'—':(subDiff>=0?'+':'')+' $'+Math.abs(Math.round(subDiff));
+      const subPct = rVal!==null&&catBudget>0?((rVal-catBudget)/catBudget*100):null;
+      const subPctStr = subPct===null?'—':(subPct>=0?'+':'')+subPct.toFixed(1)+'%';
+
+      html += `<tr style="background:var(--bg2)">
+        <td></td>
+        <td></td>
+        <td style="padding-left:20px;font-size:11px;color:var(--text3)">└</td>
+        <td style="font-size:11px;color:var(--text2);padding-left:4px">${catLabel}</td>
+        <td class="mono text-right" style="font-size:11px;color:var(--text2)">$${catBudget}</td>
+        <td class="text-right"><input type="number" style="width:78px;font-size:11px" placeholder="Real $" value="${rStr}"
+          onchange="S.reales['r_${i}_${catKey}']=this.value;saveData();renderDiarioTable();updateKPIs();"/></td>
+        <td class="${subDiffCls} text-right" style="font-size:11px">${subDiffStr}</td>
+        <td class="${subPct!==null?(Math.abs(subPct)<10?'pos':Math.abs(subPct)<25?'neu':'neg'):'neu'} text-right" style="font-size:10px">${subPctStr}</td>
+        <td colspan="3" style="font-size:10px;color:var(--text3)">${catKey==='vuelo'?'Transporte entre ciudades':catKey==='hotel'?'Alojamiento noche':'—'}</td>
+      </tr>`;
+    });
+  });
+
+  tbody.innerHTML=html;
+  const diff2=totPlan-totReal;
+  const projAdj=daysData>0?Math.round((totReal/daysData)*15):totPlan;
+  if(tfoot) tfoot.innerHTML=`<tr style="background:var(--bg4)"><td colspan="4" style="font-weight:700">TOTALES 15 DÍAS</td><td class="mono text-right" style="color:var(--blue);font-weight:700">$${totPlan.toLocaleString()}</td><td class="mono text-right" style="color:var(--cyan);font-weight:700">$${Math.round(totReal).toLocaleString()}</td><td class="${diff2>=0?'pos':'neg'} text-right" style="font-weight:700">${diff2>=0?'+':''}$${Math.round(Math.abs(diff2))}</td><td colspan="2"></td><td class="mono text-right" style="color:var(--cyan)">$${Math.round(cumReal)}</td><td></td></tr>`;
+  document.getElementById('d-tot-presup').textContent='$'+totPlan.toLocaleString();
+  document.getElementById('d-tot-real').textContent='$'+Math.round(totReal).toLocaleString();
+  const dEl=document.getElementById('d-tot-diff');
+  dEl.textContent=(diff2>=0?'+':'')+' $'+Math.round(Math.abs(diff2));
+  dEl.style.color=diff2>=0?'var(--green)':'var(--red)';
+  document.getElementById('d-tot-proj').textContent='$'+projAdj.toLocaleString();
+}
+
+function renderCiudadDetailTable() {
+  const tbody=document.getElementById('ciudad-detail-tbody');
+  const tfoot=document.getElementById('ciudad-detail-tfoot');
+  if(!tbody) return;
+  let tH=0,tF=0,tT=0,tE=0,tEUR=0,tUSD=0,tReal=0;
+  let html='';
+  CITIES.forEach(c=>{
+    const b=getCityBudget(c);
+    const real=getCityReal(c.id);
+    const diff=b.totalUsd-real;
+    const diffCls=real===0?'neu':diff>=0?'pos':'neg';
+    tH+=b.hotel;tF+=b.food;tT+=b.transport/S.tc;tE+=b.entries/S.tc;tEUR+=b.totalEur;tUSD+=b.totalUsd;tReal+=real;
+    const cpn=b.nights>0?Math.round(b.totalUsd/b.nights):0;
+    html+=`<tr>
+      <td>${c.flag} <strong>${c.name}</strong></td>
+      <td class="mono text-center">${b.nights}</td>
+      <td class="mono text-right">€${Math.round(b.hotel)}</td>
+      <td class="mono text-right">€${Math.round(b.food)}</td>
+      <td class="mono text-right">€${Math.round(b.transport/S.tc)}</td>
+      <td class="mono text-right">€${Math.round(b.entries/S.tc)}</td>
+      <td class="mono text-right">€${Math.round(b.totalEur)}</td>
+      <td class="mono text-right"><strong>$${Math.round(b.totalUsd)}</strong></td>
+      <td class="mono text-right" style="color:var(--cyan)">${real>0?'$'+Math.round(real):'—'}</td>
+      <td class="${diffCls} text-right">${real>0?((diff>=0?'+':'')+' $'+Math.round(Math.abs(diff))):'—'}</td>
+      <td class="mono text-right" style="font-size:11px">${cpn>0?'€'+Math.round(b.totalEur/b.nights):b.nights===0?'—':'€'+Math.round(b.totalEur)}</td>
+      <td><span class="badge ${real===0?'badge-gray':diff>=0?'badge-green':'badge-red'}">${real===0?'PENDIENTE':diff>=0?'OK':'EXCEDIDO'}</span></td>
+    </tr>`;
+  });
+  tbody.innerHTML=html;
+  const diffTot=tUSD-tReal;
+  if(tfoot) tfoot.innerHTML=`<tr><td colspan="2">TOTAL</td><td class="mono text-right">€${Math.round(tH)}</td><td class="mono text-right">€${Math.round(tF)}</td><td class="mono text-right">€${Math.round(tT)}</td><td class="mono text-right">€${Math.round(tE)}</td><td class="mono text-right">€${Math.round(tEUR)}</td><td class="mono text-right" style="color:var(--amber)"><strong>$${Math.round(tUSD).toLocaleString()}</strong></td><td class="mono text-right" style="color:var(--cyan)">$${Math.round(tReal)}</td><td class="${diffTot>=0?'pos':'neg'} text-right">${tReal>0?((diffTot>=0?'+':'')+' $'+Math.round(Math.abs(diffTot))):'—'}</td><td colspan="2"></td></tr>`;
+}
+
+function renderCatTable() {
+  const tbody=document.getElementById('cat-tbody');
+  const tfoot=document.getElementById('cat-tfoot');
+  if(!tbody) return;
+  const catBudgets=getCatBudget();
+  const catReales=getCatReal();
+  const totBudget=catBudgets.reduce((a,b)=>a+b,0);
+  const totReal=catReales.reduce((a,b)=>a+b,0);
+  let html='';
+  CATS.forEach((cat,i)=>{
+    const b=Math.round(catBudgets[i]);
+    const r=Math.round(catReales[i]);
+    const diff=b-r;
+    const diffPct=b>0?((r-b)/b*100):0;
+    const pctB=totBudget>0?Math.round(b/totBudget*100):0;
+    const pctR=totReal>0&&r>0?Math.round(r/totReal*100):0;
+    const progPct=b>0?Math.min(100,Math.round(r/b*100)):0;
+    const progColor=progPct<85?'prog-green':progPct<100?'prog-amber':'prog-red';
+    html+=`<tr>
+      <td><span class="leg-dot" style="background:${CAT_COLORS[i]};display:inline-block;margin-right:6px;border-radius:2px"></span><strong>${cat}</strong></td>
+      <td class="mono text-right">$${b.toLocaleString()}</td>
+      <td class="mono text-right">${pctB}%</td>
+      <td class="mono text-right" style="color:var(--cyan)">${r>0?'$'+r.toLocaleString():'—'}</td>
+      <td class="mono text-right">${pctR>0?pctR+'%':'—'}</td>
+      <td class="${diff>=0?'pos':'neg'} text-right">${r>0?(diff>=0?'+':'')+' $'+Math.abs(diff):'—'}</td>
+      <td class="${Math.abs(diffPct)<10?'pos':Math.abs(diffPct)<25?'neu':'neg'} text-right" style="font-size:11px">${r>0?(diffPct>=0?'+':'')+diffPct.toFixed(1)+'%':'—'}</td>
+      <td style="min-width:100px"><div class="prog-wrap"><div class="prog-bar ${progColor}" style="width:${progPct}%"></div></div><div style="font-size:9px;color:var(--text3);margin-top:2px">${progPct}% ejecutado</div></td>
+      <td><span class="badge ${r===0?'badge-gray':progPct<85?'badge-green':progPct<100?'badge-amber':'badge-red'}">${r===0?'SIN DATA':progPct<85?'EN RANGO':progPct<100?'ATENCIÓN':'EXCEDIDO'}</span></td>
+    </tr>`;
+  });
+  tbody.innerHTML=html;
+  if(tfoot) tfoot.innerHTML=`<tr><td>TOTAL</td><td class="mono text-right">$${Math.round(totBudget).toLocaleString()}</td><td>100%</td><td class="mono text-right" style="color:var(--cyan)">${totReal>0?'$'+Math.round(totReal).toLocaleString():'—'}</td><td>100%</td><td class="${totReal>0?((totBudget-totReal)>=0?'pos':'neg'):'neu'} text-right">${totReal>0?((totBudget-totReal>=0?'+':'')+' $'+Math.abs(Math.round(totBudget-totReal))):'—'}</td><td colspan="3"></td></tr>`;
+}
+
+// ===================== KPI UPDATES =====================
+function updateKPIs() {
+  const t=getTotals();
+  const budget=S.scenarios[S.scenario];
+  const emergAmt=Math.round(budget*S.emergPct/100);
+  const {totalReal,daysWithData}=getRealTotals();
+  const disponible=budget-totalReal;
+  const margin=budget-t.grandTotal;
+  const burnPlan=Math.round(t.grandTotal/15);
+  const burnReal=daysWithData>0?Math.round(totalReal/daysWithData):null;
+  const desv=t.grandTotal-budget;
+  const daysRest=15-daysWithData;
+  const cpd=daysWithData>0?Math.round(totalReal/daysWithData):null;
+  const projFinal=daysWithData>=3?Math.round((totalReal/daysWithData)*15):t.grandTotal;
+  const dailyRest=daysRest>0?Math.round((disponible)/daysRest):0;
+  const semPct=t.grandTotal/budget*100;
+
+  document.getElementById('kpi-presupuesto').textContent='$'+budget.toLocaleString();
+  document.getElementById('kpi-proyeccion').textContent='$'+Math.round(t.grandTotal).toLocaleString();
+  document.getElementById('kpi-real').textContent='$'+Math.round(totalReal).toLocaleString();
+  document.getElementById('kpi-real-sub').textContent=daysWithData+' días registrados';
+  document.getElementById('kpi-disponible').textContent='$'+Math.round(disponible).toLocaleString();
+  document.getElementById('kpi-disponible').style.color=disponible>0?'var(--green)':'var(--red)';
+  document.getElementById('kpi-emergencia').textContent='$'+emergAmt.toLocaleString();
+  document.getElementById('kpi-burn-plan').textContent='$'+burnPlan+'/d';
+  document.getElementById('kpi-burn-real').textContent=burnReal?'$'+burnReal+'/d':'Sin data';
+  document.getElementById('kpi-burn-real-sub').textContent=daysWithData>0?`${daysWithData} días con datos`:'Sin datos aún';
+  const desvEl=document.getElementById('kpi-desviacion');
+  desvEl.textContent=(desv>=0?'+':'')+' $'+Math.round(Math.abs(desv));
+  desvEl.style.color=desv<=0?'var(--green)':'var(--red)';
+  document.getElementById('kpi-dias-rest').textContent=daysRest;
+  document.getElementById('kpi-cpd').textContent=cpd?'$'+cpd+'/d':'—';
+  document.getElementById('kpi-proj-final2').textContent='$'+projFinal.toLocaleString();
+  document.getElementById('kpi-pf2-sub').textContent=daysWithData>=3?`Basado en ${daysWithData} días`:'Sin suficiente data';
+  document.getElementById('kpi-pf2-sub').style.color=projFinal>budget?'var(--red)':'var(--green)';
+  const dailyRestEl=document.getElementById('kpi-daily-rest');
+  dailyRestEl.textContent='$'+Math.max(0,dailyRest)+'/d';
+  dailyRestEl.style.color=dailyRest>=burnPlan?'var(--green)':dailyRest>0?'var(--amber)':'var(--red)';
+
+  document.getElementById('h-budget').textContent='$'+budget.toLocaleString();
+  document.getElementById('h-proj').textContent='$'+Math.round(t.grandTotal).toLocaleString();
+  document.getElementById('h-real').textContent='$'+Math.round(totalReal).toLocaleString();
+  const hmEl=document.getElementById('h-margin');
+  hmEl.textContent=(margin>=0?'+':'')+' $'+Math.round(Math.abs(margin));
+  hmEl.style.color=margin>=0?'var(--green)':'var(--red)';
+  document.getElementById('strip-tc').textContent=S.tc;
+  document.getElementById('strip-date').textContent=new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'});
+
+  renderSemaforo(semPct, document.getElementById('kpi-semaforo-big'), true);
+  renderSemaforo(semPct, document.getElementById('h-semaforo'));
+
+  // Velocidad panel
+  const vPanel=document.getElementById('velocidad-panel');
+  if(vPanel && daysWithData>=2){
+    const daysArr=buildDays();
+    let consec=0; let prevOver=false;
+    daysArr.forEach((d,i)=>{
+      const r=parseFloat(S.reales[i]);
+      if(!isNaN(r)&&r>d.budget) { if(prevOver) consec++; prevOver=true; } else prevOver=false;
+    });
+    const trend=burnReal>burnPlan?'ACELERADO':'NORMAL';
+    const trendColor=burnReal>burnPlan?'var(--red)':'var(--green)';
+    vPanel.innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:var(--bg);border-radius:var(--r);padding:12px;text-align:center">
+          <div class="kpi-label">Tendencia</div>
+          <div class="kpi-value" style="font-size:16px;color:${trendColor}">${trend}</div>
+        </div>
+        <div style="background:var(--bg);border-radius:var(--r);padding:12px;text-align:center">
+          <div class="kpi-label">Días consecutivos sobre presupuesto</div>
+          <div class="kpi-value" style="font-size:16px;color:${consec>2?'var(--red)':'var(--green)'}">${consec}</div>
+        </div>
+        <div style="background:var(--bg);border-radius:var(--r);padding:12px;text-align:center">
+          <div class="kpi-label">Costo/día real</div>
+          <div class="kpi-value" style="font-size:16px;color:var(--cyan)">$${burnReal??'—'}</div>
+        </div>
+        <div style="background:var(--bg);border-radius:var(--r);padding:12px;text-align:center">
+          <div class="kpi-label">Costo/día plan</div>
+          <div class="kpi-value" style="font-size:16px;color:var(--blue)">$${burnPlan}</div>
+        </div>
+      </div>`;
+  }
+
+  // Alerts
+  const alertsEl=document.getElementById('dashboard-alerts');
+  if(alertsEl){
+    let alerts='';
+    if(margin<0) alerts+=`<div class="alert-strip alert-red"><span>⚠</span><div><strong>ALERTA:</strong> El presupuesto proyectado ($${Math.round(t.grandTotal).toLocaleString()}) excede el asignado ($${budget.toLocaleString()}) en $${Math.abs(Math.round(margin)).toLocaleString()}. Considera reducir noches en Suiza o saltar Praga.</div></div>`;
+    if(margin>=0&&margin<300) alerts+=`<div class="alert-strip alert-amber"><span>△</span><div><strong>MARGEN AJUSTADO:</strong> Quedan $${Math.round(margin).toLocaleString()} de margen. Fondo emergencia recomendado: $${emergAmt.toLocaleString()}. Evita gastos no planificados.</div></div>`;
+    if(margin>=300) alerts+=`<div class="alert-strip alert-green"><span>✓</span><div><strong>PRESUPUESTO EN RANGO:</strong> Margen de $${Math.round(margin).toLocaleString()} disponible sobre el total proyectado. Fondo emergencia reservado: $${emergAmt.toLocaleString()}.</div></div>`;
+    alerts+=`<div class="alert-strip alert-blue"><span>✈</span><div><strong>VUELO LIM-MAD:</strong> S/3,220 (~$860 USD, Air Canada) es precio competitivo. Con 8 meses de anticipación: COMPRA AHORA. Históricamente sube $150-300 en los 3 meses previos.</div></div>`;
+    alertsEl.innerHTML=alerts;
+  }
+}
+
+// ===================== MAIN RENDER =====================
+function renderAll() {
+  updateKPIs();
+  renderResumenTable();
+  renderDiarioTable();
+  renderDonut();
+  renderCiudadBar();
+  renderCurvaS();
+  renderBurnRate();
+  renderProjection();
+  renderCatCharts();
+  renderCiudadDetail();
+  renderCiudadDetailTable();
+  renderCatTable();
+  renderRealVsPlan();
+  updateScenarioBtns();
+}
+
+// ===================== SCENARIO =====================
+function setScenario(s) {
+  S.scenario=s;
+  S.budget=S.scenarios[s];
+  updateScenarioBtns();
+  renderAll();
+}
+
+function updateScenarioBtns() {
+  ['conservador','base','holgado'].forEach(x=>{
+    const b1=document.getElementById('sb-'+x);
+    const b2=document.getElementById('csb-'+x);
+    if(b1) b1.classList.toggle('active',S.scenario===x);
+    if(b2) b2.classList.toggle('active',S.scenario===x);
+  });
+}
+
+// ===================== TABS =====================
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  renderAll();
+}
+
+// ===================== CONFIG =====================
+function applyConfig() {
+  S.budget=parseFloat(document.getElementById('cfg-budget').value)||4000;
+  S.tc=parseFloat(document.getElementById('cfg-tc').value)||1.08;
+  S.emergPct=parseFloat(document.getElementById('cfg-emerg').value)||10;
+  S.flightMain=parseFloat(document.getElementById('cfg-flight-main').value)||860;
+  S.days.paris=parseInt(document.getElementById('cfg-d-paris').value)||3;
+  S.days.suiza=parseInt(document.getElementById('cfg-d-suiza').value)||3;
+  S.days.roma=parseInt(document.getElementById('cfg-d-roma').value)||3;
+  S.days.florencia=parseInt(document.getElementById('cfg-d-florencia').value)||1;
+  S.days.venecia=parseInt(document.getElementById('cfg-d-venecia').value)||1;
+  S.days.amsterdam=parseInt(document.getElementById('cfg-d-amsterdam').value)||2;
+  S.days.praga=parseInt(document.getElementById('cfg-d-praga').value)||2;
+  S.hotel.paris=parseInt(document.getElementById('cfg-h-paris').value)||130;
+  S.hotel.suiza=parseInt(document.getElementById('cfg-h-suiza').value)||140;
+  S.hotel.italia=parseInt(document.getElementById('cfg-h-italia').value)||100;
+  S.hotel.amsterdam=parseInt(document.getElementById('cfg-h-amsterdam').value)||120;
+  S.hotel.praga=parseInt(document.getElementById('cfg-h-praga').value)||85;
+  S.food.paris=parseInt(document.getElementById('cfg-f-paris').value)||50;
+  S.food.suiza=parseInt(document.getElementById('cfg-f-suiza').value)||55;
+  S.food.italia=parseInt(document.getElementById('cfg-f-italia').value)||40;
+  S.food.amsterdam=parseInt(document.getElementById('cfg-f-amsterdam').value)||45;
+  S.food.praga=parseInt(document.getElementById('cfg-f-praga').value)||30;
+  S.scenarios.base=S.budget;
+  S.scenarios.conservador=Math.round(S.budget*0.875);
+  S.scenarios.holgado=Math.round(S.budget*1.125);
+  const tot=S.days.paris+S.days.suiza+S.days.roma+S.days.florencia+S.days.venecia+S.days.amsterdam+S.days.praga+1;
+  document.getElementById('cfg-total-nights').textContent=tot-1;
+  document.getElementById('cfg-total-days').textContent=tot;
+  saveData(); renderAll();
+}
+
+// ===================== PERSISTENCE =====================
+const LS_KEY='europa2027_v2';
+function saveData() {
+  try{localStorage.setItem(LS_KEY,JSON.stringify({reales:S.reales,scenario:S.scenario,budget:S.budget,tc:S.tc,emergPct:S.emergPct,days:{...S.days},hotel:{...S.hotel},food:{...S.food}}))}catch(e){}
+}
+function loadData() {
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(!raw) return;
+    const d=JSON.parse(raw);
+    if(d.reales) S.reales=d.reales;
+    if(d.scenario) S.scenario=d.scenario;
+    if(d.budget) { S.budget=d.budget; S.scenarios.base=d.budget; }
+    if(d.tc) S.tc=d.tc;
+    if(d.emergPct) S.emergPct=d.emergPct;
+    if(d.days) Object.assign(S.days,d.days);
+    if(d.hotel) Object.assign(S.hotel,d.hotel);
+    if(d.food) Object.assign(S.food,d.food);
+    // Sync config inputs
+    const setVal=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
+    setVal('cfg-budget',S.budget); setVal('cfg-tc',S.tc); setVal('cfg-emerg',S.emergPct);
+    setVal('cfg-d-paris',S.days.paris); setVal('cfg-d-suiza',S.days.suiza);
+    setVal('cfg-d-roma',S.days.roma); setVal('cfg-d-florencia',S.days.florencia);
+    setVal('cfg-d-venecia',S.days.venecia); setVal('cfg-d-amsterdam',S.days.amsterdam);
+    setVal('cfg-d-praga',S.days.praga);
+  }catch(e){}
+}
+
+// ===================== DEMO DATA =====================
+function fillDemo() {
+  const demos=[320,195,210,225,200,180,195,230,185,175,215,240,220,195,190];
+  const mult=SCEN_MULT[S.scenario];
+  demos.slice(0,7).forEach((v,i)=>{ S.reales[i]=Math.round(v*mult*(0.9+Math.random()*0.2)); });
+  saveData(); renderAll();
+}
+function clearReales() { S.reales={}; saveData(); renderAll(); }
+
+// ===================== EXPORT =====================
+function exportExcel() {
+  try{
+    const days=buildDays();
+    const wb=XLSX.utils.book_new();
+    const rows=[['EUROPA 2027 · FINANCIAL CONTROLLER'],['Generado:',new Date().toLocaleString('es-PE')],['Escenario:',S.scenario,'Presupuesto:','$'+S.scenarios[S.scenario],'TC EUR/USD:',S.tc],[]];
+    rows.push(['DÍA','FECHA','CIUDAD','ACTIVIDAD','PRESUP USD','REAL USD','DIFERENCIA','% DESV.','ACUM PRESUP','ACUM REAL']);
+    let cumP=0,cumR=0;
+    days.forEach((d,i)=>{
+      cumP+=d.budget;
+      const r=parseFloat(S.reales[i])||0;
+      if(S.reales[i]!==undefined&&S.reales[i]!=='') cumR+=r;
+      rows.push([d.day,d.date,d.city,d.activity,d.budget,r||(S.reales[i]!==undefined&&S.reales[i]!==''?r:''),
+        S.reales[i]!==undefined&&S.reales[i]!==''?d.budget-r:'',
+        S.reales[i]!==undefined&&S.reales[i]!==''?((r-d.budget)/d.budget*100).toFixed(1)+'%':'',
+        cumP,cumR||'']);
+    });
+    rows.push([]);
+    rows.push(['CIUDAD','NOCHES','HOTEL USD','COMIDA USD','TRANSP USD','ACT USD','TOTAL USD']);
+    CITIES.forEach(c=>{ const b=getCityBudget(c); rows.push([c.name,b.nights,Math.round(b.hotel*S.tc),Math.round(b.food*S.tc),Math.round(b.transport),Math.round(b.entries),Math.round(b.totalUsd)]); });
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb,ws,'Dashboard Europa 2027');
+    XLSX.writeFile(wb,'EUROPA_2027_Financial_Controller.xlsx');
+  }catch(e){alert('Error exportando: '+e.message);}
+}
+
+// ===================== INIT =====================
+window.addEventListener('load',()=>{
+  loadData();
+  renderAll();
+});
+</script>
+</body>
+</html>
