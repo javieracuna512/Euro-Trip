@@ -1495,7 +1495,7 @@ function applyConfig() {
 // ===================== PERSISTENCE — CLOUD + LOCALSTORAGE =====================
 // Mismo patrón que app de gastos personales (GET base64, lotes, merge, fallback local)
 const LS_KEY = 'europa2027_v2';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyx6M8K9nvbtFOmqVKqkBmXGJ2RVD4E3TMUk1LIlV-3J6QsB8HHQ90oFpavCZ9W3-Z5VA/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycby5TXJzPf3yyoOJqGlOQAZ6YSDk7bNe4LvHEYLzuBIrNqhxOFHuYie-YBBZBcXgLhC7kQ/exec';
 // Ejemplo: 'https://script.google.com/macros/s/AKfy.../exec'
 const SYNC_ENABLED = true;
 let isSaving = false;
@@ -1516,6 +1516,7 @@ function buildPayload() {
     budget:   S.budget,
     tc:       S.tc,
     emergPct: S.emergPct,
+    flightMain: S.flightMain,
     days:     { ...S.days },
     hotel:    { ...S.hotel },
     food:     { ...S.food }
