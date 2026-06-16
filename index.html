@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>EUROPA_ EAE 2027 · Financial Controller Dashboard</title>
+<title>EUROPA 2027 · Financial Controller Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -224,7 +224,8 @@ hr.dark{border:none;border-top:1px solid var(--border);margin:16px 0}
   <div class="header-actions">
     <button class="btn" onclick="exportExcel()">⬇ Excel</button>
     <button class="btn" onclick="window.print()">⬇ PDF</button>
-    <button class="btn btn-primary" onclick="saveData()">💾 Guardar</button>
+    <button class="btn btn-primary" onclick="cloudSave()">☁ Guardar</button>
+    <span id="sync-indicator" style="font-size:10px;font-family:var(--font-mono);color:var(--text3);margin-left:4px;min-width:140px;display:inline-block"></span>
   </div>
 </div>
 
@@ -1491,32 +1492,145 @@ function applyConfig() {
   saveData(); renderAll();
 }
 
-// ===================== PERSISTENCE =====================
-const LS_KEY='europa2027_v2';
-function saveData() {
-  try{localStorage.setItem(LS_KEY,JSON.stringify({reales:S.reales,scenario:S.scenario,budget:S.budget,tc:S.tc,emergPct:S.emergPct,days:{...S.days},hotel:{...S.hotel},food:{...S.food}}))}catch(e){}
+// ===================== PERSISTENCE — CLOUD + LOCALSTORAGE =====================
+// Mismo patrón que app de gastos personales (GET base64, lotes, merge, fallback local)
+const LS_KEY = 'europa2027_v2';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyx6M8K9nvbtFOmqVKqkBmXGJ2RVD4E3TMUk1LIlV-3J6QsB8HHQ90oFpavCZ9W3-Z5VA/exec';
+// Ejemplo: 'https://script.google.com/macros/s/AKfy.../exec'
+const SYNC_ENABLED = true;
+let isSaving = false;
+
+function setSyncIndicator(state, msg) {
+  const el = document.getElementById('sync-indicator');
+  if (!el) return;
+  const icons = { idle:'', syncing:'🔄', ok:'🟢', error:'🔴' };
+  el.textContent = (icons[state]||'') + ' ' + (msg||'');
+  el.style.color = state==='error' ? 'var(--red)' : state==='ok' ? 'var(--green)' : 'var(--text3)';
 }
-function loadData() {
-  try{
-    const raw=localStorage.getItem(LS_KEY);
-    if(!raw) return;
-    const d=JSON.parse(raw);
-    if(d.reales) S.reales=d.reales;
-    if(d.scenario) S.scenario=d.scenario;
-    if(d.budget) { S.budget=d.budget; S.scenarios.base=d.budget; }
-    if(d.tc) S.tc=d.tc;
-    if(d.emergPct) S.emergPct=d.emergPct;
-    if(d.days) Object.assign(S.days,d.days);
-    if(d.hotel) Object.assign(S.hotel,d.hotel);
-    if(d.food) Object.assign(S.food,d.food);
-    // Sync config inputs
-    const setVal=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
-    setVal('cfg-budget',S.budget); setVal('cfg-tc',S.tc); setVal('cfg-emerg',S.emergPct);
-    setVal('cfg-d-paris',S.days.paris); setVal('cfg-d-suiza',S.days.suiza);
-    setVal('cfg-d-roma',S.days.roma); setVal('cfg-d-florencia',S.days.florencia);
-    setVal('cfg-d-venecia',S.days.venecia); setVal('cfg-d-amsterdam',S.days.amsterdam);
-    setVal('cfg-d-praga',S.days.praga);
-  }catch(e){}
+
+// Construye el payload a guardar (todo el estado relevante)
+function buildPayload() {
+  return {
+    reales:   S.reales,
+    scenario: S.scenario,
+    budget:   S.budget,
+    tc:       S.tc,
+    emergPct: S.emergPct,
+    days:     { ...S.days },
+    hotel:    { ...S.hotel },
+    food:     { ...S.food }
+  };
+}
+
+// Aplica datos recibidos (cloud o local) al estado S y sincroniza inputs
+function applyPayload(d) {
+  if (!d) return;
+  if (d.reales)   S.reales   = d.reales;
+  if (d.scenario) S.scenario = d.scenario;
+  if (d.budget)   { S.budget = d.budget; S.scenarios.base = d.budget; }
+  if (d.tc)       S.tc       = d.tc;
+  if (d.emergPct) S.emergPct = d.emergPct;
+  if (d.days)     Object.assign(S.days,  d.days);
+  if (d.hotel)    Object.assign(S.hotel, d.hotel);
+  if (d.food)     Object.assign(S.food,  d.food);
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  setVal('cfg-budget', S.budget); setVal('cfg-tc', S.tc); setVal('cfg-emerg', S.emergPct);
+  setVal('cfg-flight-main', S.flightMain);
+  setVal('cfg-d-paris', S.days.paris); setVal('cfg-d-suiza', S.days.suiza);
+  setVal('cfg-d-roma', S.days.roma);   setVal('cfg-d-florencia', S.days.florencia);
+  setVal('cfg-d-venecia', S.days.venecia); setVal('cfg-d-amsterdam', S.days.amsterdam);
+  setVal('cfg-d-praga', S.days.praga);
+  setVal('cfg-h-paris', S.hotel.paris); setVal('cfg-h-suiza', S.hotel.suiza);
+  setVal('cfg-h-italia', S.hotel.italia); setVal('cfg-h-amsterdam', S.hotel.amsterdam);
+  setVal('cfg-h-praga', S.hotel.praga);
+  setVal('cfg-f-paris', S.food.paris); setVal('cfg-f-suiza', S.food.suiza);
+  setVal('cfg-f-italia', S.food.italia); setVal('cfg-f-amsterdam', S.food.amsterdam);
+  setVal('cfg-f-praga', S.food.praga);
+}
+
+// saveData: guarda localStorage (instantáneo, llamado automáticamente en cada cambio)
+function saveData() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(buildPayload())); } catch(e) {}
+}
+
+// cloudSave: sincroniza a Google Sheets (llamado solo desde el botón ☁ Guardar)
+async function cloudSave() {
+  saveData(); // siempre guardar local primero
+
+  if (!SYNC_ENABLED || !GAS_URL || GAS_URL.includes('PEGA_AQUI')) {
+    setSyncIndicator('error', '⚠ Configura GAS_URL');
+    setTimeout(() => setSyncIndicator('idle',''), 4000);
+    return;
+  }
+  if (isSaving) { setSyncIndicator('syncing','Ya guardando...'); return; }
+
+  isSaving = true;
+  setSyncIndicator('syncing', 'Guardando en nube...');
+
+  // Dividir en lotes de 1 (payload único pero puede ser grande)
+  // Para Europa usamos un lote único con todo el estado
+  const payload = buildPayload();
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  const url = GAS_URL + '?action=save&data=' + encodeURIComponent(encoded) + '&ts=' + Date.now();
+
+  try {
+    const res = await fetch(url, { method: 'GET', cache: 'no-store' });
+    const text = await res.text();
+    let result;
+    try { result = JSON.parse(text); } catch(e) {
+      setSyncIndicator('error', 'Respuesta inválida');
+      isSaving = false; return;
+    }
+    if (result.status === 'ok') {
+      setSyncIndicator('ok', `Guardado ✓ · ${result.fields||''} campos`);
+      setTimeout(() => loadData(), 1500);
+    } else {
+      setSyncIndicator('error', 'Error: ' + (result.message||''));
+    }
+  } catch(e) {
+    setSyncIndicator('error', 'Sin red — local OK');
+  }
+  isSaving = false;
+  setTimeout(() => setSyncIndicator('idle',''), 5000);
+}
+
+// loadData: carga desde cloud, con fallback a localStorage
+async function loadData() {
+  // 1. Cargar localStorage de inmediato (fast start)
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) applyPayload(JSON.parse(raw));
+  } catch(e) {}
+
+  if (!SYNC_ENABLED || !GAS_URL || GAS_URL.includes('PEGA_AQUI')) return;
+
+  setSyncIndicator('syncing', 'Sincronizando...');
+  try {
+    const url = GAS_URL + '?action=load&ts=' + Date.now();
+    const res = await fetch(url, { cache: 'no-store' });
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) {
+      setSyncIndicator('error', 'Respuesta inválida');
+      console.error('No es JSON:', text.substring(0,200));
+      return;
+    }
+    if (data.status === 'ok' && data.payload) {
+      applyPayload(data.payload);
+      // Cloud tiene prioridad: actualizar localStorage
+      try { localStorage.setItem(LS_KEY, JSON.stringify(buildPayload())); } catch(e) {}
+      setSyncIndicator('ok', 'Sincronizado ✓');
+      renderAll();
+    } else if (data.status === 'ok' && !data.payload) {
+      setSyncIndicator('ok', 'En nube (vacío)');
+    } else {
+      setSyncIndicator('error', data.message || 'Sin datos');
+    }
+  } catch(e) {
+    setSyncIndicator('error', 'Sin red · usando local');
+    console.error('loadData error:', e);
+  }
+  setTimeout(() => setSyncIndicator('idle',''), 4000);
 }
 
 // ===================== DEMO DATA =====================
@@ -1555,9 +1669,11 @@ function exportExcel() {
 }
 
 // ===================== INIT =====================
-window.addEventListener('load',()=>{
-  loadData();
-  renderAll();
+window.addEventListener('load', async () => {
+  renderAll();        // render inmediato con defaults
+  await loadData();   // carga cloud/local y re-renderiza si hay datos
+  // Auto-refresh cada 60s si hay conexión y no se está guardando
+  setInterval(() => { if (SYNC_ENABLED && !isSaving) loadData(); }, 60000);
 });
 </script>
 </body>
