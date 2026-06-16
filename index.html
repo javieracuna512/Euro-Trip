@@ -803,7 +803,18 @@ function getRealTotals() {
 function getCityReal(cityId) {
   const days = buildDays();
   let total = 0;
-  days.forEach(d => { if(d.cityId===cityId && S.reales[d.idx]!==undefined && S.reales[d.idx]!=='') total += parseFloat(S.reales[d.idx])||0; });
+ days.forEach(d => {
+
+  const real = getDayTotalReal(d.idx);
+
+  if(
+     d.cityId === cityId &&
+     real !== null
+  ){
+     total += real;
+  }
+
+});
   return total;
 }
 
@@ -818,7 +829,7 @@ function getCatReal() {
   const days = buildDays();
   let hotel=0, transport=0, food=0, entries=0, misc=0;
   days.forEach((d,i) => {
-    const r = parseFloat(S.reales[i]) || 0;
+    const r = getDayTotalReal(i) || 0;
     if(r > 0) {
       const b = getCityBudget(d.cityObj);
       const total = b.totalUsd || 1;
@@ -831,6 +842,30 @@ function getCatReal() {
   return [hotel, transport, food, entries, misc];
 }
 
+//=====================NUEVA FUNCION====================
+  function getDayTotalReal(dayIndex){
+
+  let total = 0;
+  let found = false;
+
+  DAY_CAT_KEYS.forEach(catKey => {
+
+    const key = `r_${dayIndex}_${catKey}`;
+
+    if(
+      S.reales[key] !== undefined &&
+      S.reales[key] !== ''
+    ){
+      total += parseFloat(S.reales[key]) || 0;
+      found = true;
+    }
+
+  });
+
+  return found ? total : null;
+
+}
+  
 // ===================== ITINERARY DAYS =====================
 function buildDays() {
   const days = [];
@@ -939,7 +974,9 @@ function renderCurvaS() {
   const labels = days.map(d=>'D'+d.day);
   let cumPlan=0, cumReal=0;
   const planData=[], realData=[];
-  days.forEach((d,i)=>{ cumPlan+=d.budget; planData.push(Math.round(cumPlan)); const r=parseFloat(S.reales[i])||0; if(S.reales[i]!==undefined&&S.reales[i]!==''){cumReal+=r;} realData.push(cumReal>0?Math.round(cumReal):null); });
+  days.forEach((d,i)=>{ cumPlan+=d.budget; planData.push(Math.round(cumPlan)); const r = getDayTotalReal(i);if(r !== null){
+   cumReal += r;
+} realData.push(cumReal>0?Math.round(cumReal):null); });
   const legEl=document.getElementById('curva-legend');
   if(legEl) legEl.innerHTML=`<span><span class="leg-dot" style="background:#3b82f6"></span>Presupuesto Acum.</span><span><span class="leg-dot" style="background:#06b6d4"></span>Real Acum.</span>`;
   S.charts.curvas = new Chart(ctx,{
@@ -959,7 +996,7 @@ function renderBurnRate() {
   const days=buildDays();
   const labels=days.map(d=>'D'+d.day);
   const planData=days.map(d=>d.budget);
-  const realData=days.map((d,i)=>{ const v=S.reales[i]; return (v!==undefined&&v!=='') ? Math.round(parseFloat(v)||0) : null; });
+  const realData = days.map((d,i)=>{const r = getDayTotalReal(i); return r !== null? Math.round(r) : null;});
   const legEl=document.getElementById('burn-legend');
   if(legEl) legEl.innerHTML=`<span><span class="leg-dot" style="background:#1d4ed8"></span>Planificado</span><span><span class="leg-dot" style="background:#0e6e56;border:1px dashed #22c55e"></span>Real</span>`;
   S.charts.burn = new Chart(ctx,{
@@ -1070,7 +1107,15 @@ function renderRealVsPlan() {
   const days=buildDays();
   const labels=days.map(d=>'D'+d.day);
   const plan=days.map(d=>d.budget);
-  const real=days.map((d,i)=>S.reales[i]!==undefined&&S.reales[i]!==''?Math.round(parseFloat(S.reales[i])||0):null);
+ const real = days.map((d,i)=>{
+
+   const r = getDayTotalReal(i);
+
+   return r !== null
+      ? Math.round(r)
+      : null;
+
+});
   S.charts.rvp=new Chart(ctx,{
     type:'line',
     data:{labels,datasets:[
@@ -1531,6 +1576,7 @@ function applyPayload(d) {
   if (d.budget)   { S.budget = d.budget; S.scenarios.base = d.budget; }
   if (d.tc)       S.tc       = d.tc;
   if (d.emergPct) S.emergPct = d.emergPct;
+  if (d.flightMain) S.flightMain = d.flightMain;
   if (d.days)     Object.assign(S.days,  d.days);
   if (d.hotel)    Object.assign(S.hotel, d.hotel);
   if (d.food)     Object.assign(S.food,  d.food);
