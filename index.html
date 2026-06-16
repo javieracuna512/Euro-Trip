@@ -1091,10 +1091,50 @@ function renderCiudadDetail() {
   }
   if(ctxP){
     const labels=CITIES.filter(c=>c.dkey).map(c=>c.flag+' '+c.name.substring(0,4));
-    const cpn=CITIES.filter(c=>c.dkey).map(c=>{ const b=getCityBudget(c); return b.nights>0?Math.round(b.totalUsd/b.nights):0; });
+    const labels = CITIES
+   .filter(c=>c.dkey)
+   .map(c=>c.flag+' '+c.name.substring(0,4));
+
+const plan = CITIES
+   .filter(c=>c.dkey)
+   .map(c=>{
+
+      const b = getCityBudget(c);
+
+      return b.nights > 0
+         ? Math.round(b.totalUsd/b.nights)
+         : 0;
+   });
+
+const real = CITIES
+   .filter(c=>c.dkey)
+   .map(c=>{
+
+      const r = getCityReal(c.id);
+
+      const b = getCityBudget(c);
+
+      return (r > 0 && b.nights > 0)
+         ? Math.round(r/b.nights)
+         : null;
+   });
     S.charts.cpn=new Chart(ctxP,{
       type:'bar',
-      data:{labels,datasets:[{label:'USD/noche',data:cpn,backgroundColor:'rgba(6,182,212,0.7)',borderColor:'#06b6d4',borderWidth:1}]},
+      data:{
+ labels,
+ datasets:[
+   {
+      label:'Presupuesto',
+      data:plan,
+      backgroundColor:'rgba(59,130,246,.7)'
+   },
+   {
+      label:'Real',
+      data:real,
+      backgroundColor:'rgba(245,158,11,.7)'
+   }
+ ]
+}
       options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',callback:v=>'$'+v},grid:{color:'#e5e7eb'}},y:{ticks:{color:'#6b7280',font:{size:10}}}}}
     });
   }
