@@ -224,8 +224,7 @@ hr.dark{border:none;border-top:1px solid var(--border);margin:16px 0}
   <div class="header-actions">
     <button class="btn" onclick="exportExcel()">⬇ Excel</button>
     <button class="btn" onclick="window.print()">⬇ PDF</button>
-    <button class="btn btn-primary" onclick="cloudSave()">☁ Guardar</button>
-    <span id="sync-indicator" style="font-size:10px;font-family:var(--font-mono);color:var(--text3);margin-left:4px;min-width:140px;display:inline-block"></span>
+    <button class="btn btn-primary" onclick="saveData()">💾 Guardar</button>
   </div>
 </div>
 
@@ -671,51 +670,30 @@ hr.dark{border:none;border-top:1px solid var(--border);margin:16px 0}
 <div class="tab-page" id="tab-config">
 
   <div class="panel-row cols2">
-    <div class="panel">
+    <div class="panel" style="grid-column:1/-1">
       <div class="panel-header"><span class="panel-title">Parámetros Generales</span></div>
       <div class="panel-body">
-        <div class="cfg-section">
-          <div class="cfg-title">Financiero</div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Presupuesto Total Tours (USD)</div><div class="cfg-sub">Disponible para toda Europa excl. LIM-MAD</div></div><div style="display:flex;align-items:center;gap:6px"><input type="number" id="cfg-budget" value="4000" min="1000" max="15000" step="100"> <span style="font-size:10px;color:var(--text3)">USD</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Tipo de Cambio EUR/USD</div><div class="cfg-sub">1 EUR = X USD</div></div><div style="display:flex;align-items:center;gap:6px"><input type="number" id="cfg-tc" value="1.08" min="0.8" max="1.5" step="0.01"> <span style="font-size:10px;color:var(--text3)">USD</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">% Fondo de Emergencia</div><div class="cfg-sub">Reservado del presupuesto total</div></div><div style="display:flex;align-items:center;gap:6px"><input type="number" id="cfg-emerg" value="10" min="0" max="30" step="1"> <span style="font-size:10px;color:var(--text3)">%</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Vuelo LIM–MAD (USD)</div><div class="cfg-sub">Referencia, presupuestado aparte</div></div><div style="display:flex;align-items:center;gap:6px"><input type="number" id="cfg-flight-main" value="860" min="400" max="2000" step="10"> <span style="font-size:10px;color:var(--text3)">USD</span></div></div>
-        </div>
-        <div class="cfg-section">
-          <div class="cfg-title">Noches por Ciudad</div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇫🇷 París</div></div><div><input type="number" id="cfg-d-paris" value="3" min="1" max="7"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇨🇭 Suiza (Lucerna/Interlaken)</div></div><div><input type="number" id="cfg-d-suiza" value="3" min="1" max="7"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇮🇹 Roma</div></div><div><input type="number" id="cfg-d-roma" value="3" min="1" max="7"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇮🇹 Florencia</div></div><div><input type="number" id="cfg-d-florencia" value="1" min="1" max="4"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇮🇹 Venecia</div></div><div><input type="number" id="cfg-d-venecia" value="1" min="1" max="3"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇳🇱 Ámsterdam</div></div><div><input type="number" id="cfg-d-amsterdam" value="2" min="1" max="6"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">🇨🇿 Praga</div></div><div><input type="number" id="cfg-d-praga" value="2" min="1" max="5"> <span style="font-size:10px;color:var(--text3)">noches</span></div></div>
-          <div style="background:var(--bg4);border-radius:var(--r);padding:10px;margin-top:10px;font-family:var(--font-mono);font-size:11px">
-            Total: <strong id="cfg-total-nights" style="color:var(--blue)">15</strong> noches / <strong id="cfg-total-days" style="color:var(--blue)">16</strong> días de viaje
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:20px">
+          <div class="cfg-section" style="margin-bottom:0">
+            <div class="cfg-title">Financiero</div>
+            <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Presupuesto Total Tours (USD)</div><div class="cfg-sub">Disponible para toda Europa excl. LIM-MAD</div></div><div style="display:flex;align-items:center;gap:6px"><input type="number" id="cfg-budget" value="4000" min="1000" max="15000" step="100"> <span style="font-size:10px;color:var(--text3)">USD</span></div></div>
+            <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Tipo de Cambio EUR/USD</div><div class="cfg-sub">1 EUR = X USD</div></div><div style="display:flex;align-items:center;gap:6px"><input type="number" id="cfg-tc" value="1.08" min="0.8" max="1.5" step="0.01"> <span style="font-size:10px;color:var(--text3)">USD</span></div></div>
+            <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">% Fondo de Emergencia</div><div class="cfg-sub">Reservado del presupuesto total</div></div><div style="display:flex;align-items:center;gap:6px"><input type="number" id="cfg-emerg" value="10" min="0" max="30" step="1"> <span style="font-size:10px;color:var(--text3)">%</span></div></div>
+            <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Vuelo LIM–MAD (USD)</div><div class="cfg-sub">Referencia, presupuestado aparte</div></div><div style="display:flex;align-items:center;gap:6px"><input type="number" id="cfg-flight-main" value="860" min="400" max="2000" step="10"> <span style="font-size:10px;color:var(--text3)">USD</span></div></div>
+          </div>
+          <div style="background:var(--bg4);border-radius:var(--r2);padding:14px;display:flex;flex-direction:column;justify-content:center;gap:8px">
+            <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Resumen activo</div>
+            <div style="font-family:var(--font-mono);font-size:12px">Ciudades activas: <strong id="cfg-active-count" style="color:var(--blue)">—</strong></div>
+            <div style="font-family:var(--font-mono);font-size:12px">Total noches: <strong id="cfg-total-nights" style="color:var(--blue)">—</strong></div>
+            <div style="font-family:var(--font-mono);font-size:12px">Total días viaje: <strong id="cfg-total-days" style="color:var(--blue)">—</strong></div>
+            <div style="font-family:var(--font-mono);font-size:12px">Presup. proyectado: <strong id="cfg-proj-usd" style="color:var(--amber)">—</strong></div>
           </div>
         </div>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="panel-header"><span class="panel-title">Costos Unitarios por Ciudad</span></div>
-      <div class="panel-body">
-        <div class="cfg-section">
-          <div class="cfg-title">Hotel por Noche (EUR)</div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">París (€/noche)</div></div><div><input type="number" id="cfg-h-paris" value="130" min="50" max="500"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Suiza (€/noche)</div></div><div><input type="number" id="cfg-h-suiza" value="140" min="60" max="500"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Italia prom. (€/noche)</div></div><div><input type="number" id="cfg-h-italia" value="100" min="40" max="400"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Ámsterdam (€/noche)</div></div><div><input type="number" id="cfg-h-amsterdam" value="120" min="50" max="400"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Praga (€/noche)</div></div><div><input type="number" id="cfg-h-praga" value="85" min="30" max="250"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
-        </div>
-        <div class="cfg-section">
-          <div class="cfg-title">Comida por Día (EUR)</div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">París (€/día)</div></div><div><input type="number" id="cfg-f-paris" value="50" min="20" max="150"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Suiza (€/día)</div></div><div><input type="number" id="cfg-f-suiza" value="55" min="20" max="150"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Italia (€/día)</div></div><div><input type="number" id="cfg-f-italia" value="40" min="20" max="120"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Ámsterdam (€/día)</div></div><div><input type="number" id="cfg-f-amsterdam" value="45" min="20" max="120"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
-          <div class="cfg-row"><div class="cfg-info"><div class="cfg-label">Praga (€/día)</div></div><div><input type="number" id="cfg-f-praga" value="30" min="15" max="100"> <span style="font-size:10px;color:var(--text3)">€</span></div></div>
-        </div>
-        <button onclick="applyConfig()" style="width:100%;background:var(--blue-d);border:1px solid var(--blue);color:#fff;padding:10px;border-radius:var(--r);cursor:pointer;font-family:var(--font-mono);font-size:12px;margin-top:8px">↺ APLICAR Y RECALCULAR TODO</button>
+
+        <div class="cfg-title" style="margin-bottom:12px">Ciudades del Itinerario · Activa o desactiva y ajusta costos</div>
+        <div id="cfg-cities-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px"></div>
+
+        <button onclick="applyConfig()" style="width:100%;background:var(--blue-d);border:1px solid var(--blue);color:#fff;padding:10px;border-radius:var(--r);cursor:pointer;font-family:var(--font-mono);font-size:12px;margin-top:16px">↺ APLICAR Y RECALCULAR TODO</button>
       </div>
     </div>
   </div>
@@ -732,25 +710,37 @@ const S = {
   tc: 1.08,
   emergPct: 10,
   flightMain: 860,
-  days: { paris:3, suiza:3, roma:3, florencia:1, venecia:1, amsterdam:2, praga:2 },
+  days:  { paris:3, suiza:3, roma:3, florencia:1, venecia:1, amsterdam:2, praga:2 },
   hotel: { paris:130, suiza:140, italia:100, amsterdam:120, praga:85 },
-  food: { paris:50, suiza:55, italia:40, amsterdam:45, praga:30 },
+  food:  { paris:50, suiza:55, italia:40, amsterdam:45, praga:30 },
+  cityActive: { madrid:true, paris:true, suiza:true, roma:true, florencia:true, venecia:true, amsterdam:true, praga:true },
   scenarios: { conservador:3500, base:4000, holgado:4500 },
   reales: {},
   charts: {}
 };
 
 // ===================== CITIES DEF =====================
-const CITIES = [
-  { id:'madrid',    flag:'🇪🇸', name:'Madrid',    dkey:null,      nights:1, hotelKey:null,        foodKey:null,         transport:0,   entries:0,    dates:'1 Mar',    acts:'Día libre post-maestría · Preparativos salida' },
-  { id:'paris',     flag:'🇫🇷', name:'París',     dkey:'paris',   nights:3, hotelKey:'paris',     foodKey:'paris',      transport:86,  entries:75,   dates:'2–4 Mar',  acts:'Louvre €17 · Torre Eiffel €26 · Montmartre' },
-  { id:'suiza',     flag:'🇨🇭', name:'Suiza',     dkey:'suiza',   nights:3, hotelKey:'suiza',     foodKey:'suiza',      transport:65,  entries:85,   dates:'5–7 Mar',  acts:'TGV París-Lucerna · Alpes · Interlaken' },
-  { id:'roma',      flag:'🇮🇹', name:'Roma',      dkey:'roma',    nights:3, hotelKey:'italia',    foodKey:'italia',     transport:92,  entries:60,   dates:'8–10 Mar', acts:'Coliseo €16 · Vaticano €20 · Fontana Trevi' },
-  { id:'florencia', flag:'🇮🇹', name:'Florencia', dkey:'florencia',nights:1,hotelKey:'italia',   foodKey:'italia',     transport:38,  entries:25,   dates:'11 Mar',   acts:'Uffizi €20 · Duomo · Ponte Vecchio' },
-  { id:'venecia',   flag:'🇮🇹', name:'Venecia',   dkey:'venecia', nights:1, hotelKey:'italia',    foodKey:'italia',     transport:38,  entries:20,   dates:'12 Mar',   acts:'Góndola €80 · Plaza San Marcos · Rialto' },
-  { id:'amsterdam', flag:'🇳🇱', name:'Ámsterdam', dkey:'amsterdam',nights:2,hotelKey:'amsterdam',foodKey:'amsterdam',  transport:108, entries:55,   dates:'13–14 Mar',acts:'VCE→AMS €100 · Rijksmuseum €22 · Canales' },
-  { id:'praga',     flag:'🇨🇿', name:'Praga',     dkey:'praga',   nights:2, hotelKey:'praga',     foodKey:'praga',      transport:81,  entries:40,   dates:'15 Mar',   acts:'AMS→PRG €75 · Castillo · Puente Carlos' },
+// Catálogo completo — se activan/desactivan desde Config sin tocar código
+const CITIES_CATALOG = [
+  { id:'madrid',    flag:'🇪🇸', name:'Madrid',    dkey:null,         hotelKey:null,        foodKey:null,         transport:0,   entries:0,    acts:'Día libre post-maestría · Preparativos salida',    flightDay:false, flightCost:0  },
+  { id:'paris',     flag:'🇫🇷', name:'París',     dkey:'paris',      hotelKey:'paris',     foodKey:'paris',      transport:86,  entries:75,   acts:'Louvre €17 · Torre Eiffel €26 · Montmartre',       flightDay:true,  flightCost:86  },
+  { id:'suiza',     flag:'🇨🇭', name:'Suiza',     dkey:'suiza',      hotelKey:'suiza',     foodKey:'suiza',      transport:65,  entries:85,   acts:'TGV París-Lucerna · Alpes · Interlaken',            flightDay:true,  flightCost:65  },
+  { id:'roma',      flag:'🇮🇹', name:'Roma',      dkey:'roma',       hotelKey:'italia',    foodKey:'italia',     transport:92,  entries:60,   acts:'Coliseo €16 · Vaticano €20 · Fontana Trevi',       flightDay:true,  flightCost:92  },
+  { id:'florencia', flag:'🇮🇹', name:'Florencia', dkey:'florencia',  hotelKey:'italia',    foodKey:'italia',     transport:38,  entries:25,   acts:'Uffizi €20 · Duomo · Ponte Vecchio',               flightDay:true,  flightCost:38  },
+  { id:'venecia',   flag:'🇮🇹', name:'Venecia',   dkey:'venecia',    hotelKey:'italia',    foodKey:'italia',     transport:38,  entries:20,   acts:'Góndola €80 · Plaza San Marcos · Rialto',          flightDay:true,  flightCost:38  },
+  { id:'amsterdam', flag:'🇳🇱', name:'Ámsterdam', dkey:'amsterdam',  hotelKey:'amsterdam', foodKey:'amsterdam',  transport:108, entries:55,   acts:'VCE→AMS €100 · Rijksmuseum €22 · Canales',        flightDay:true,  flightCost:108 },
+  { id:'praga',     flag:'🇨🇿', name:'Praga',     dkey:'praga',      hotelKey:'praga',     foodKey:'praga',      transport:81,  entries:40,   acts:'AMS→PRG €75 · Castillo · Puente Carlos',          flightDay:true,  flightCost:81  },
 ];
+
+// CITIES activo: solo las ciudades con active=true en S.cityActive
+function getActiveCities() {
+  return CITIES_CATALOG.filter(c => S.cityActive[c.id] !== false);
+}
+// Para compatibilidad con código que usa CITIES directamente
+function getCITIES() { return getActiveCities(); }
+
+// Compat alias — usado en charts y tablas existentes
+const CITIES = CITIES_CATALOG; // se mantiene completo; el filtro lo hace getActiveCities()
 
 const CATS = ['Hoteles','Vuelos Internos','Comida','Actividades/Entradas','Contingencia'];
 const CAT_COLORS = ['#3b82f6','#f59e0b','#22c55e','#a855f7','#06b6d4'];
@@ -762,21 +752,21 @@ const SCEN_MULT = { conservador:0.88, base:1.0, holgado:1.14 };
 function getCityBudget(c) {
   const m = SCEN_MULT[S.scenario];
   const tc = S.tc;
-  const nights = c.dkey ? S.days[c.dkey] : (c.id==='madrid'?1:0);
-  const hotelRate = c.hotelKey ? S.hotel[c.hotelKey] : 0;
-  const foodRate = c.foodKey ? S.food[c.foodKey] : (S.food.paris * 0.8);
-  const hotel = nights * hotelRate * m;
-  const food = nights * foodRate * m;
-  const transport = c.transport * m;
-  const entries = c.entries * m;
-  const totalEur = hotel + food + transport/tc + entries/tc;
-  const totalUsd = hotel*tc + food*tc + transport + entries;
+  const nights = c.dkey ? (S.days[c.dkey]||0) : (c.id==='madrid'?1:0);
+  const hotelRate = c.hotelKey ? (S.hotel[c.hotelKey]||0) : 0;
+  const foodRate  = c.foodKey  ? (S.food[c.foodKey]||0)  : 0;
+  const hotel     = nights * hotelRate * m;
+  const food      = nights * foodRate  * m;
+  const transport = (S.cityActive[c.id] !== false ? c.transport : 0) * m;
+  const entries   = (S.cityActive[c.id] !== false ? c.entries   : 0) * m;
+  const totalEur  = hotel + food + transport/tc + entries/tc;
+  const totalUsd  = hotel*tc + food*tc + transport + entries;
   return { hotel, food, transport, entries, totalEur, totalUsd, nights, hotelRate, foodRate };
 }
 
 function getTotals() {
   let hotel=0, food=0, transport=0, entries=0, totalUsd=0, totalEur=0;
-  CITIES.forEach(c => {
+  getActiveCities().forEach(c => {
     const b = getCityBudget(c);
     hotel += b.hotel * S.tc;
     food += b.food * S.tc;
@@ -803,18 +793,7 @@ function getRealTotals() {
 function getCityReal(cityId) {
   const days = buildDays();
   let total = 0;
- days.forEach(d => {
-
-  const real = getDayTotalReal(d.idx);
-
-  if(
-     d.cityId === cityId &&
-     real !== null
-  ){
-     total += real;
-  }
-
-});
+  days.forEach(d => { if(d.cityId===cityId && S.reales[d.idx]!==undefined && S.reales[d.idx]!=='') total += parseFloat(S.reales[d.idx])||0; });
   return total;
 }
 
@@ -829,7 +808,7 @@ function getCatReal() {
   const days = buildDays();
   let hotel=0, transport=0, food=0, entries=0, misc=0;
   days.forEach((d,i) => {
-    const r = getDayTotalReal(i) || 0;
+    const r = parseFloat(S.reales[i]) || 0;
     if(r > 0) {
       const b = getCityBudget(d.cityObj);
       const total = b.totalUsd || 1;
@@ -842,76 +821,49 @@ function getCatReal() {
   return [hotel, transport, food, entries, misc];
 }
 
-//=====================NUEVA FUNCION====================
-  function getDayTotalReal(dayIndex){
-
-  let total = 0;
-  let found = false;
-
-  DAY_CAT_KEYS.forEach(catKey => {
-
-    const key = `r_${dayIndex}_${catKey}`;
-
-    if(
-      S.reales[key] !== undefined &&
-      S.reales[key] !== ''
-    ){
-      total += parseFloat(S.reales[key]) || 0;
-      found = true;
-    }
-
-  });
-
-  return found ? total : null;
-
-}
-  
+// ===================== ITINERARY DAYS =====================
 // ===================== ITINERARY DAYS =====================
 function buildDays() {
   const days = [];
-  const allDays = [
-    {cityId:'madrid', cityObj:CITIES[0]},
-    {cityId:'paris', cityObj:CITIES[1]},{cityId:'paris', cityObj:CITIES[1]},{cityId:'paris', cityObj:CITIES[1]},
-    {cityId:'suiza', cityObj:CITIES[2]},{cityId:'suiza', cityObj:CITIES[2]},{cityId:'suiza', cityObj:CITIES[2]},
-    {cityId:'roma', cityObj:CITIES[3]},{cityId:'roma', cityObj:CITIES[3]},{cityId:'roma', cityObj:CITIES[3]},
-    {cityId:'florencia', cityObj:CITIES[4]},
-    {cityId:'venecia', cityObj:CITIES[5]},
-    {cityId:'amsterdam', cityObj:CITIES[6]},{cityId:'amsterdam', cityObj:CITIES[6]},
-    {cityId:'praga', cityObj:CITIES[7]},
-  ];
-  const acts = [
-    'Día libre · Ajuste horario · Preparación',
-    'Vuelo MAD→CDG · Check-in · Barrio Marais · Cena Seine',
-    'Louvre (€17) · Jardin Tuileries · Opera · Champs-Élysées',
-    'Torre Eiffel (€26) · Champ de Mars · Montmartre · Sacré-Cœur',
-    'TGV París→Lucerna (€60) · Lago Lucerna · Puente de la Capilla',
-    'Excursión Interlaken · Vistas Jungfrau · Actividades Alpes',
-    'Día en Lucerna · Castillo Gutsch · Mercado central',
-    'Vuelo ZRH→FCO (€85) · Trastevere · Fontana di Trevi · Noche romana',
-    'Coliseo + Foro Romano (€16) · Palatino · Boca de la Verdad',
-    'Vaticano + Capilla Sixtina (€20) · Castillo Sant\'Angelo',
-    'Tren Roma→Florencia (€35) · Duomo · Uffizi (€20) · Ponte Vecchio',
-    'Tren Florencia→Venecia (€35) · San Marcos · Rialto · Góndola (€80)',
-    'Vuelo VCE→AMS (€100) · Canales · Leidseplein · Jordaan',
-    'Rijksmuseum (€22) · Casa de Ana Frank (€16) · Bicicleta · Mercado',
-    'Vuelo AMS→PRG (€75) · Castillo de Praga · Puente Carlos · ¡Fin tour!',
-  ];
-  const baseBudgets = [38,210,180,185,195,185,165,215,175,180,200,220,230,185,180];
+  const active = getActiveCities();
   const m = SCEN_MULT[S.scenario];
   const start = new Date(2027,2,1);
-  allDays.forEach((d,i) => {
-    const dt = new Date(start); dt.setDate(dt.getDate()+i);
-    days.push({
-      idx:i, day:i+1,
-      date:dt.toLocaleDateString('es-PE',{day:'2-digit',month:'short'}),
-      cityId:d.cityId, cityObj:d.cityObj,
-      flag:d.cityObj.flag, city:d.cityObj.name,
-      activity:acts[i],
-      budget: Math.round(baseBudgets[i]*m),
-      real: S.reales[i] !== undefined ? S.reales[i] : ''
-    });
+  let dayNum = 0;
+
+  active.forEach(c => {
+    const nights = c.dkey ? (S.days[c.dkey]||1) : 1; // Madrid = 1 día sin noches de hotel
+    const perDayBudget = getCityPerDayBudget(c);
+
+    for (let n = 0; n < nights; n++) {
+      const dt = new Date(start); dt.setDate(dt.getDate() + dayNum);
+      const isFirstDay = n === 0;
+      days.push({
+        idx: dayNum, day: dayNum+1,
+        date: dt.toLocaleDateString('es-PE',{day:'2-digit',month:'short'}),
+        cityId: c.id, cityObj: c,
+        flag: c.flag, city: c.name,
+        activity: isFirstDay && c.flightDay
+          ? `Vuelo/Tren → ${c.name} · ${c.acts}`
+          : c.acts,
+        budget: Math.round(perDayBudget * m),
+        real: S.reales[dayNum] !== undefined ? S.reales[dayNum] : ''
+      });
+      dayNum++;
+    }
   });
   return days;
+}
+
+// Presupuesto diario base de una ciudad (sin multiplicador de escenario)
+function getCityPerDayBudget(c) {
+  const nights = c.dkey ? (S.days[c.dkey]||1) : 1;
+  const hotelRate = c.hotelKey ? (S.hotel[c.hotelKey]||0) : 0;
+  const foodRate  = c.foodKey  ? (S.food[c.foodKey]||0)  : 0;
+  const hotel = hotelRate * S.tc;
+  const food  = foodRate  * S.tc;
+  const transport = c.transport / nights; // distribuido por noches
+  const entries   = c.entries   / nights;
+  return hotel + food + transport + entries;
 }
 
 // ===================== SEMÁFORO =====================
@@ -953,9 +905,9 @@ function renderCiudadBar() {
   destroyChart('ciudadbar');
   const ctx = document.getElementById('chart-ciudad-bar');
   if(!ctx) return;
-  const labels=CITIES.map(c=>c.flag+' '+c.name.substring(0,3));
-  const budgets=CITIES.map(c=>Math.round(getCityBudget(c).totalUsd));
-  const reales=CITIES.map(c=>{ const r=getCityReal(c.id); return r>0?Math.round(r):null; });
+  const labels=getActiveCities().map(c=>c.flag+' '+c.name.substring(0,3));
+  const budgets=getActiveCities().map(c=>Math.round(getCityBudget(c).totalUsd));
+  const reales=getActiveCities().map(c=>{ const r=getCityReal(c.id); return r>0?Math.round(r):null; });
   S.charts.ciudadbar = new Chart(ctx,{
     type:'bar',
     data:{labels, datasets:[
@@ -974,9 +926,7 @@ function renderCurvaS() {
   const labels = days.map(d=>'D'+d.day);
   let cumPlan=0, cumReal=0;
   const planData=[], realData=[];
-  days.forEach((d,i)=>{ cumPlan+=d.budget; planData.push(Math.round(cumPlan)); const r = getDayTotalReal(i);if(r !== null){
-   cumReal += r;
-} realData.push(cumReal>0?Math.round(cumReal):null); });
+  days.forEach((d,i)=>{ cumPlan+=d.budget; planData.push(Math.round(cumPlan)); const r=parseFloat(S.reales[i])||0; if(S.reales[i]!==undefined&&S.reales[i]!==''){cumReal+=r;} realData.push(cumReal>0?Math.round(cumReal):null); });
   const legEl=document.getElementById('curva-legend');
   if(legEl) legEl.innerHTML=`<span><span class="leg-dot" style="background:#3b82f6"></span>Presupuesto Acum.</span><span><span class="leg-dot" style="background:#06b6d4"></span>Real Acum.</span>`;
   S.charts.curvas = new Chart(ctx,{
@@ -996,7 +946,7 @@ function renderBurnRate() {
   const days=buildDays();
   const labels=days.map(d=>'D'+d.day);
   const planData=days.map(d=>d.budget);
-  const realData = days.map((d,i)=>{const r = getDayTotalReal(i); return r !== null? Math.round(r) : null;});
+  const realData=days.map((d,i)=>{ const v=S.reales[i]; return (v!==undefined&&v!=='') ? Math.round(parseFloat(v)||0) : null; });
   const legEl=document.getElementById('burn-legend');
   if(legEl) legEl.innerHTML=`<span><span class="leg-dot" style="background:#1d4ed8"></span>Planificado</span><span><span class="leg-dot" style="background:#0e6e56;border:1px dashed #22c55e"></span>Real</span>`;
   S.charts.burn = new Chart(ctx,{
@@ -1073,11 +1023,11 @@ function renderCiudadDetail() {
   const ctxD=document.getElementById('chart-ciudad-detail');
   const ctxP=document.getElementById('chart-cpn');
   if(ctxD){
-    const labels=CITIES.map(c=>c.flag+' '+c.name.substring(0,4));
-    const hData=CITIES.map(c=>Math.round(getCityBudget(c).hotel*S.tc));
-    const fData=CITIES.map(c=>Math.round(getCityBudget(c).food*S.tc));
-    const tData=CITIES.map(c=>Math.round(getCityBudget(c).transport));
-    const eData=CITIES.map(c=>Math.round(getCityBudget(c).entries));
+    const labels=getActiveCities().map(c=>c.flag+' '+c.name.substring(0,4));
+    const hData=getActiveCities().map(c=>Math.round(getCityBudget(c).hotel*S.tc));
+    const fData=getActiveCities().map(c=>Math.round(getCityBudget(c).food*S.tc));
+    const tData=getActiveCities().map(c=>Math.round(getCityBudget(c).transport));
+    const eData=getActiveCities().map(c=>Math.round(getCityBudget(c).entries));
     S.charts.ciudaddet=new Chart(ctxD,{
       type:'bar',
       data:{labels, datasets:[
@@ -1090,8 +1040,8 @@ function renderCiudadDetail() {
     });
   }
   if(ctxP){
-    const labels=CITIES.filter(c=>c.dkey).map(c=>c.flag+' '+c.name.substring(0,4));
-    const cpn=CITIES.filter(c=>c.dkey).map(c=>{ const b=getCityBudget(c); return b.nights>0?Math.round(b.totalUsd/b.nights):0; });
+    const labels=getActiveCities().filter(c=>c.dkey).map(c=>c.flag+' '+c.name.substring(0,4));
+    const cpn=getActiveCities().filter(c=>c.dkey).map(c=>{ const b=getCityBudget(c); return b.nights>0?Math.round(b.totalUsd/b.nights):0; });
     S.charts.cpn=new Chart(ctxP,{
       type:'bar',
       data:{labels,datasets:[{label:'USD/noche',data:cpn,backgroundColor:'rgba(6,182,212,0.7)',borderColor:'#06b6d4',borderWidth:1}]},
@@ -1107,15 +1057,7 @@ function renderRealVsPlan() {
   const days=buildDays();
   const labels=days.map(d=>'D'+d.day);
   const plan=days.map(d=>d.budget);
- const real = days.map((d,i)=>{
-
-   const r = getDayTotalReal(i);
-
-   return r !== null
-      ? Math.round(r)
-      : null;
-
-});
+  const real=days.map((d,i)=>S.reales[i]!==undefined&&S.reales[i]!==''?Math.round(parseFloat(S.reales[i])||0):null);
   S.charts.rvp=new Chart(ctx,{
     type:'line',
     data:{labels,datasets:[
@@ -1133,11 +1075,11 @@ function renderResumenTable() {
   if(!tbody) return;
   let totH=0,totF=0,totT=0,totE=0,totUsd=0;
   let html='';
-  CITIES.forEach(c=>{
+  getActiveCities().forEach(c=>{
     const b=getCityBudget(c);
     const cpn=b.nights>0?Math.round(b.totalUsd/b.nights):0;
     totH+=b.hotel*S.tc; totF+=b.food*S.tc; totT+=b.transport; totE+=b.entries; totUsd+=b.totalUsd;
-    const statusPct=b.totalUsd/(S.scenarios[S.scenario]/CITIES.length)*100;
+    const statusPct=b.totalUsd/(S.scenarios[S.scenario]/getActiveCities().length)*100;
     const badge=statusPct<80?'badge-green':statusPct<110?'badge-amber':'badge-red';
     html+=`<tr>
       <td>${c.flag} <strong>${c.name}</strong><div style="font-size:10px;color:var(--text3)">${c.dates}</div></td>
@@ -1162,41 +1104,22 @@ const DAY_CATS = ['✈ Vuelo/Tren','🏨 Hotel','🍽 Comida','🚇 Transp. Loca
 const DAY_CAT_KEYS = ['vuelo','hotel','comida','transp','activ'];
 
 function getDaySubBudgets(dayIdx) {
-  // Returns {vuelo, hotel, comida, transp, activ} in USD for that day
+  const days = buildDays();
+  const d = days[dayIdx];
+  if (!d) return {vuelo:0,hotel:0,comida:0,transp:0,activ:0};
+  const c = d.cityObj;
   const m = SCEN_MULT[S.scenario];
-  // Lookup city for this day
-  const cityMap = [
-    'madrid','paris','paris','paris',
-    'suiza','suiza','suiza',
-    'roma','roma','roma',
-    'florencia','venecia',
-    'amsterdam','amsterdam',
-    'praga'
-  ];
-  const cityId = cityMap[dayIdx] || 'paris';
-  const cityObj = CITIES.find(c=>c.id===cityId);
-  if(!cityObj) return {vuelo:0,hotel:0,comida:0,transp:0,activ:0};
-
-  const b = getCityBudget(cityObj);
-  const nights = b.nights || 1;
-
-  // Vuelo only on travel days (day 0=Madrid free, 1=fly to Paris, 4=TGV, 7=fly to Rome, 10=train, 11=train+arrive Venice, 12=fly AMS, 14=fly PRG)
-  const flightDays = {1:86,4:65,7:92,10:38,11:38,12:108,14:81};
-  const vueloPlan = flightDays[dayIdx] ? Math.round(flightDays[dayIdx]*m) : 0;
-
-  // Hotel: split per night
-  const hotelPlan = Math.round((b.hotel * S.tc) / nights);
-
-  // Food per day
-  const foodPlan = Math.round(b.food * S.tc / nights);
-
-  // Local transport (metro, bus, taxi) — fixed per city
+  const nights = c.dkey ? (S.days[c.dkey]||1) : 1;
+  const hotelRate = c.hotelKey ? (S.hotel[c.hotelKey]||0) : 0;
+  const foodRate  = c.foodKey  ? (S.food[c.foodKey]||0)  : 0;
+  const hotelPlan = Math.round(hotelRate * S.tc * m);
+  const foodPlan  = Math.round(foodRate  * S.tc * m);
   const localTransp = {madrid:10,paris:15,suiza:10,roma:12,florencia:8,venecia:10,amsterdam:14,praga:10};
-  const transpPlan = Math.round((localTransp[cityId]||10)*m);
-
-  // Activities per day
-  const activPlan = Math.round((b.entries / nights));
-
+  const transpPlan = Math.round((localTransp[c.id]||10) * m);
+  const activPlan  = Math.round((c.entries / nights) * m);
+  // Vuelo solo el primer día de cada ciudad con flightDay
+  const isFirstDayOfCity = dayIdx === 0 || (days[dayIdx-1] && days[dayIdx-1].cityId !== c.id);
+  const vueloPlan = (c.flightDay && isFirstDayOfCity) ? Math.round(c.flightCost * m) : 0;
   return {vuelo:vueloPlan, hotel:hotelPlan, comida:foodPlan, transp:transpPlan, activ:activPlan};
 }
 
@@ -1305,7 +1228,7 @@ function renderCiudadDetailTable() {
   if(!tbody) return;
   let tH=0,tF=0,tT=0,tE=0,tEUR=0,tUSD=0,tReal=0;
   let html='';
-  CITIES.forEach(c=>{
+  getActiveCities().forEach(c=>{
     const b=getCityBudget(c);
     const real=getCityReal(c.id);
     const diff=b.totalUsd-real;
@@ -1505,43 +1428,126 @@ function showTab(id, btn) {
   renderAll();
 }
 
-// ===================== CONFIG =====================
+// ===================== CONFIG — CITY CARDS =====================
+function renderCityCards() {
+  const grid = document.getElementById('cfg-cities-grid');
+  if (!grid) return;
+  const hotelMap = { paris:'paris', suiza:'suiza', roma:'italia', florencia:'italia', venecia:'italia', amsterdam:'amsterdam', praga:'praga', madrid:null };
+  const foodMap  = { paris:'paris', suiza:'suiza', roma:'italia', florencia:'italia', venecia:'italia', amsterdam:'amsterdam', praga:'praga', madrid:null };
+  let html = '';
+  CITIES_CATALOG.forEach(c => {
+    const isActive = S.cityActive[c.id] !== false;
+    const isMadrid = c.id === 'madrid';
+    const nights = c.dkey ? (S.days[c.dkey]||1) : 1;
+    const hKey = hotelMap[c.id];
+    const fKey = foodMap[c.id];
+    const hotelVal = hKey ? (S.hotel[hKey]||0) : 0;
+    const foodVal  = fKey ? (S.food[fKey]||0)  : 0;
+    const activeStyle = isActive
+      ? 'border:2px solid var(--blue);background:var(--bg2)'
+      : 'border:2px solid var(--border);background:var(--bg4);opacity:0.6';
+    html += `<div style="border-radius:var(--r2);padding:12px;${activeStyle};transition:all .2s">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:14px;font-weight:700">${c.flag} ${c.name}</div>
+        ${isMadrid
+          ? `<span class="badge badge-blue">Siempre activo</span>`
+          : `<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;font-family:var(--font-mono)">
+              <input type="checkbox" id="chk-${c.id}" ${isActive?'checked':''} onchange="toggleCity('${c.id}',this.checked)" style="width:auto;text-align:left">
+              ${isActive?'<span style="color:var(--green);font-weight:700">ACTIVO</span>':'<span style="color:var(--text3)">INACTIVO</span>'}
+             </label>`
+        }
+      </div>
+      ${!isMadrid ? `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+        <div>
+          <div style="font-size:9px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Noches</div>
+          <input type="number" id="cfg-d-${c.dkey}" value="${nights}" min="1" max="14" style="width:100%" ${!isActive?'disabled':''} onchange="liveUpdateCity()">
+        </div>
+        ${hKey ? `<div>
+          <div style="font-size:9px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Hotel €/n</div>
+          <input type="number" id="cfg-h-${hKey}" value="${hotelVal}" min="20" max="800" style="width:100%" ${!isActive?'disabled':''} onchange="liveUpdateCity()">
+        </div>` : '<div></div>'}
+        ${fKey ? `<div>
+          <div style="font-size:9px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Comida €/d</div>
+          <input type="number" id="cfg-f-${fKey}" value="${foodVal}" min="10" max="200" style="width:100%" ${!isActive?'disabled':''} onchange="liveUpdateCity()">
+        </div>` : '<div></div>'}
+      </div>
+      <div style="margin-top:8px;font-size:10px;color:var(--text3);font-family:var(--font-mono)">
+        Est. total ciudad: <strong style="color:${isActive?'var(--amber)':'var(--text3)'}" id="est-${c.id}">$${Math.round(getCityBudget(c).totalUsd)}</strong>
+      </div>` : '<div style="font-size:11px;color:var(--text3)">Día de llegada / ajuste horario</div>'}
+    </div>`;
+  });
+  grid.innerHTML = html;
+  updateCfgSummary();
+}
+
+function toggleCity(cityId, active) {
+  S.cityActive[cityId] = active;
+  renderCityCards(); // re-render para activar/desactivar inputs visualmente
+}
+
+function liveUpdateCity() {
+  // Lee todos los inputs de ciudad y actualiza S en tiempo real
+  CITIES_CATALOG.forEach(c => {
+    if (c.dkey) {
+      const el = document.getElementById('cfg-d-'+c.dkey);
+      if (el) S.days[c.dkey] = parseInt(el.value)||1;
+    }
+    if (c.hotelKey) {
+      const el = document.getElementById('cfg-h-'+c.hotelKey);
+      if (el) S.hotel[c.hotelKey] = parseInt(el.value)||0;
+    }
+    if (c.foodKey) {
+      const el = document.getElementById('cfg-f-'+c.foodKey);
+      if (el) S.food[c.foodKey] = parseInt(el.value)||0;
+    }
+  });
+  updateCfgSummary();
+}
+
+function updateCfgSummary() {
+  const active = getActiveCities();
+  let totalNights = 0;
+  active.forEach(c => { totalNights += c.dkey ? (S.days[c.dkey]||1) : 0; });
+  const totalDays = totalNights + 1; // +1 Madrid
+  const t = getTotals();
+  const el = id => document.getElementById(id);
+  if(el('cfg-active-count')) el('cfg-active-count').textContent = active.length;
+  if(el('cfg-total-nights')) el('cfg-total-nights').textContent = totalNights;
+  if(el('cfg-total-days'))   el('cfg-total-days').textContent   = totalDays;
+  if(el('cfg-proj-usd'))     el('cfg-proj-usd').textContent     = '$'+Math.round(t.grandTotal).toLocaleString();
+  // Actualizar estimados por ciudad
+  CITIES_CATALOG.forEach(c => {
+    const estEl = document.getElementById('est-'+c.id);
+    if (estEl) estEl.textContent = '$'+Math.round(getCityBudget(c).totalUsd);
+  });
+}
+
+// ===================== CONFIG — APPLY =====================
 function applyConfig() {
-  S.budget=parseFloat(document.getElementById('cfg-budget').value)||4000;
-  S.tc=parseFloat(document.getElementById('cfg-tc').value)||1.08;
-  S.emergPct=parseFloat(document.getElementById('cfg-emerg').value)||10;
-  S.flightMain=parseFloat(document.getElementById('cfg-flight-main').value)||860;
-  S.days.paris=parseInt(document.getElementById('cfg-d-paris').value)||3;
-  S.days.suiza=parseInt(document.getElementById('cfg-d-suiza').value)||3;
-  S.days.roma=parseInt(document.getElementById('cfg-d-roma').value)||3;
-  S.days.florencia=parseInt(document.getElementById('cfg-d-florencia').value)||1;
-  S.days.venecia=parseInt(document.getElementById('cfg-d-venecia').value)||1;
-  S.days.amsterdam=parseInt(document.getElementById('cfg-d-amsterdam').value)||2;
-  S.days.praga=parseInt(document.getElementById('cfg-d-praga').value)||2;
-  S.hotel.paris=parseInt(document.getElementById('cfg-h-paris').value)||130;
-  S.hotel.suiza=parseInt(document.getElementById('cfg-h-suiza').value)||140;
-  S.hotel.italia=parseInt(document.getElementById('cfg-h-italia').value)||100;
-  S.hotel.amsterdam=parseInt(document.getElementById('cfg-h-amsterdam').value)||120;
-  S.hotel.praga=parseInt(document.getElementById('cfg-h-praga').value)||85;
-  S.food.paris=parseInt(document.getElementById('cfg-f-paris').value)||50;
-  S.food.suiza=parseInt(document.getElementById('cfg-f-suiza').value)||55;
-  S.food.italia=parseInt(document.getElementById('cfg-f-italia').value)||40;
-  S.food.amsterdam=parseInt(document.getElementById('cfg-f-amsterdam').value)||45;
-  S.food.praga=parseInt(document.getElementById('cfg-f-praga').value)||30;
-  S.scenarios.base=S.budget;
-  S.scenarios.conservador=Math.round(S.budget*0.875);
-  S.scenarios.holgado=Math.round(S.budget*1.125);
-  const tot=S.days.paris+S.days.suiza+S.days.roma+S.days.florencia+S.days.venecia+S.days.amsterdam+S.days.praga+1;
-  document.getElementById('cfg-total-nights').textContent=tot-1;
-  document.getElementById('cfg-total-days').textContent=tot;
-  saveData(); renderAll();
+  S.budget    = parseFloat(document.getElementById('cfg-budget').value)||4000;
+  S.tc        = parseFloat(document.getElementById('cfg-tc').value)||1.08;
+  S.emergPct  = parseFloat(document.getElementById('cfg-emerg').value)||10;
+  S.flightMain= parseFloat(document.getElementById('cfg-flight-main').value)||860;
+  // Leer desde tarjetas de ciudad
+  liveUpdateCity();
+  // Leer checkboxes de ciudad
+  CITIES_CATALOG.forEach(c => {
+    if (c.id === 'madrid') return; // siempre activo
+    const chk = document.getElementById('chk-'+c.id);
+    if (chk) S.cityActive[c.id] = chk.checked;
+  });
+  S.scenarios.base         = S.budget;
+  S.scenarios.conservador  = Math.round(S.budget * 0.875);
+  S.scenarios.holgado      = Math.round(S.budget * 1.125);
+  saveData();
+  renderCityCards();
+  renderAll();
 }
 
 // ===================== PERSISTENCE — CLOUD + LOCALSTORAGE =====================
-// Mismo patrón que app de gastos personales (GET base64, lotes, merge, fallback local)
 const LS_KEY = 'europa2027_v2';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwn01zADQ1xI3zEbGcfgw5i7TwYtA5RX31McPpkPCwy_SUJvBJUfmIul2AiOIQy_2nV/exec';
-// Ejemplo: 'https://script.google.com/macros/s/AKfy.../exec'
 const SYNC_ENABLED = true;
 let isSaving = false;
 
@@ -1550,177 +1556,151 @@ function setSyncIndicator(state, msg) {
   if (!el) return;
   const icons = { idle:'', syncing:'🔄', ok:'🟢', error:'🔴' };
   el.textContent = (icons[state]||'') + ' ' + (msg||'');
-  el.style.color = state==='error' ? 'var(--red)' : state==='ok' ? 'var(--green)' : 'var(--text3)';
+  el.style.color = state==='error'?'var(--red)':state==='ok'?'var(--green)':'var(--text3)';
 }
 
-// Construye el payload a guardar (todo el estado relevante)
 function buildPayload() {
   return {
-    reales:   S.reales,
-    scenario: S.scenario,
-    budget:   S.budget,
-    tc:       S.tc,
-    emergPct: S.emergPct,
-    flightMain: S.flightMain,
-    days:     { ...S.days },
-    hotel:    { ...S.hotel },
-    food:     { ...S.food }
+    reales: S.reales, scenario: S.scenario, budget: S.budget,
+    tc: S.tc, emergPct: S.emergPct, flightMain: S.flightMain,
+    days: {...S.days}, hotel: {...S.hotel}, food: {...S.food},
+    cityActive: {...S.cityActive}
   };
 }
 
-// Aplica datos recibidos (cloud o local) al estado S y sincroniza inputs
 function applyPayload(d) {
   if (!d) return;
-  if (d.reales)   S.reales   = d.reales;
-  if (d.scenario) S.scenario = d.scenario;
-  if (d.budget)   { S.budget = d.budget; S.scenarios.base = d.budget; }
-  if (d.tc)       S.tc       = d.tc;
-  if (d.emergPct) S.emergPct = d.emergPct;
+  if (d.reales)     S.reales     = d.reales;
+  if (d.scenario)   S.scenario   = d.scenario;
+  if (d.budget)     { S.budget   = d.budget; S.scenarios.base = d.budget; }
+  if (d.tc)         S.tc         = d.tc;
+  if (d.emergPct)   S.emergPct   = d.emergPct;
   if (d.flightMain) S.flightMain = d.flightMain;
-  if (d.days)     Object.assign(S.days,  d.days);
-  if (d.hotel)    Object.assign(S.hotel, d.hotel);
-  if (d.food)     Object.assign(S.food,  d.food);
-  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
-  setVal('cfg-budget', S.budget); setVal('cfg-tc', S.tc); setVal('cfg-emerg', S.emergPct);
-  setVal('cfg-flight-main', S.flightMain);
-  setVal('cfg-d-paris', S.days.paris); setVal('cfg-d-suiza', S.days.suiza);
-  setVal('cfg-d-roma', S.days.roma);   setVal('cfg-d-florencia', S.days.florencia);
-  setVal('cfg-d-venecia', S.days.venecia); setVal('cfg-d-amsterdam', S.days.amsterdam);
-  setVal('cfg-d-praga', S.days.praga);
-  setVal('cfg-h-paris', S.hotel.paris); setVal('cfg-h-suiza', S.hotel.suiza);
-  setVal('cfg-h-italia', S.hotel.italia); setVal('cfg-h-amsterdam', S.hotel.amsterdam);
-  setVal('cfg-h-praga', S.hotel.praga);
-  setVal('cfg-f-paris', S.food.paris); setVal('cfg-f-suiza', S.food.suiza);
-  setVal('cfg-f-italia', S.food.italia); setVal('cfg-f-amsterdam', S.food.amsterdam);
-  setVal('cfg-f-praga', S.food.praga);
+  if (d.days)       Object.assign(S.days,  d.days);
+  if (d.hotel)      Object.assign(S.hotel, d.hotel);
+  if (d.food)       Object.assign(S.food,  d.food);
+  if (d.cityActive) Object.assign(S.cityActive, d.cityActive);
+  // Sync inputs financieros
+  const sv = (id,v) => { const el=document.getElementById(id); if(el) el.value=v; };
+  sv('cfg-budget',S.budget); sv('cfg-tc',S.tc); sv('cfg-emerg',S.emergPct); sv('cfg-flight-main',S.flightMain);
 }
 
-// saveData: guarda localStorage (instantáneo, llamado automáticamente en cada cambio)
 function saveData() {
   try { localStorage.setItem(LS_KEY, JSON.stringify(buildPayload())); } catch(e) {}
 }
 
-// cloudSave: sincroniza a Google Sheets (llamado solo desde el botón ☁ Guardar)
-async function cloudSave() {
-  saveData(); // siempre guardar local primero
-
-  if (!SYNC_ENABLED || !GAS_URL || GAS_URL.includes('PEGA_AQUI')) {
-    setSyncIndicator('error', '⚠ Configura GAS_URL');
-    setTimeout(() => setSyncIndicator('idle',''), 4000);
-    return;
-  }
-  if (isSaving) { setSyncIndicator('syncing','Ya guardando...'); return; }
-
-  isSaving = true;
-  setSyncIndicator('syncing', 'Guardando en nube...');
-
-  // Dividir en lotes de 1 (payload único pero puede ser grande)
-  // Para Europa usamos un lote único con todo el estado
-  const payload = buildPayload();
-  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-  const url = GAS_URL + '?action=save&data=' + encodeURIComponent(encoded) + '&ts=' + Date.now();
-
-  try {
-    const res = await fetch(url, { method: 'GET', cache: 'no-store' });
-    const text = await res.text();
-    let result;
-    try { result = JSON.parse(text); } catch(e) {
-      setSyncIndicator('error', 'Respuesta inválida');
-      isSaving = false; return;
-    }
-    if (result.status === 'ok') {
-      setSyncIndicator('ok', `Guardado ✓ · ${result.fields||''} campos`);
-      setTimeout(() => loadData(), 1500);
-    } else {
-      setSyncIndicator('error', 'Error: ' + (result.message||''));
-    }
-  } catch(e) {
-    setSyncIndicator('error', 'Sin red — local OK');
-  }
-  isSaving = false;
-  setTimeout(() => setSyncIndicator('idle',''), 5000);
+async function gasFetch(url) {
+  const res = await fetch(url, { method:'GET', redirect:'follow', cache:'no-store' });
+  return JSON.parse(await res.text());
 }
 
-// loadData: carga desde cloud, con fallback a localStorage
+async function cloudSave() {
+  saveData();
+  if (!SYNC_ENABLED || !GAS_URL || GAS_URL.includes('PEGA_AQUI')) {
+    setSyncIndicator('error','⚠ Configura GAS_URL');
+    setTimeout(()=>setSyncIndicator('idle',''),4000); return;
+  }
+  if (isSaving) { setSyncIndicator('syncing','Ya guardando...'); return; }
+  isSaving = true;
+  setSyncIndicator('syncing','Guardando en nube...');
+  try {
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(buildPayload()))));
+    const url = GAS_URL+'?action=save&data='+encodeURIComponent(encoded)+'&ts='+Date.now();
+    const result = await gasFetch(url);
+    if (result.status === 'ok') {
+      setSyncIndicator('ok','Guardado ✓ · '+(result.fields||0)+' campos');
+      setTimeout(()=>loadData(), 1500);
+    } else { setSyncIndicator('error','Error: '+(result.message||'')); }
+  } catch(e) { setSyncIndicator('error','Sin red — local OK'); }
+  isSaving = false;
+  setTimeout(()=>setSyncIndicator('idle',''), 5000);
+}
+
 async function loadData() {
-  // 1. Cargar localStorage de inmediato (fast start)
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) applyPayload(JSON.parse(raw));
   } catch(e) {}
-
   if (!SYNC_ENABLED || !GAS_URL || GAS_URL.includes('PEGA_AQUI')) return;
-
-  setSyncIndicator('syncing', 'Sincronizando...');
+  setSyncIndicator('syncing','Sincronizando...');
   try {
-    const url = GAS_URL + '?action=load&ts=' + Date.now();
-    const res = await fetch(url, { cache: 'no-store' });
-    const text = await res.text();
-    let data;
-    try { data = JSON.parse(text); } catch(e) {
-      setSyncIndicator('error', 'Respuesta inválida');
-      console.error('No es JSON:', text.substring(0,200));
-      return;
-    }
+    const data = await gasFetch(GAS_URL+'?action=load&ts='+Date.now());
     if (data.status === 'ok' && data.payload) {
       applyPayload(data.payload);
-      // Cloud tiene prioridad: actualizar localStorage
       try { localStorage.setItem(LS_KEY, JSON.stringify(buildPayload())); } catch(e) {}
-      setSyncIndicator('ok', 'Sincronizado ✓');
+      setSyncIndicator('ok','Sincronizado ✓');
+      renderCityCards();
       renderAll();
-    } else if (data.status === 'ok' && !data.payload) {
-      setSyncIndicator('ok', 'En nube (vacío)');
     } else {
-      setSyncIndicator('error', data.message || 'Sin datos');
+      setSyncIndicator(data.payload===null?'ok':'error', data.payload===null?'Nube vacía':(data.message||''));
     }
   } catch(e) {
-    setSyncIndicator('error', 'Sin red · usando local');
-    console.error('loadData error:', e);
+    setSyncIndicator('error','Sin red · local OK');
   }
-  setTimeout(() => setSyncIndicator('idle',''), 4000);
+  setTimeout(()=>setSyncIndicator('idle',''), 4000);
 }
 
 // ===================== DEMO DATA =====================
 function fillDemo() {
-  const demos=[320,195,210,225,200,180,195,230,185,175,215,240,220,195,190];
-  const mult=SCEN_MULT[S.scenario];
-  demos.slice(0,7).forEach((v,i)=>{ S.reales[i]=Math.round(v*mult*(0.9+Math.random()*0.2)); });
+  const days = buildDays();
+  const mult = SCEN_MULT[S.scenario];
+  const base = [320,195,210,225,200,180,195,230,185,175,215,240,220,195,190];
+  days.slice(0,7).forEach((d,i) => {
+    S.reales['r_'+i+'_hotel']  = Math.round((base[i]||180)*mult*0.45*(0.9+Math.random()*0.2));
+    S.reales['r_'+i+'_comida'] = Math.round((base[i]||180)*mult*0.30*(0.9+Math.random()*0.2));
+    S.reales['r_'+i+'_transp'] = Math.round((base[i]||180)*mult*0.10*(0.9+Math.random()*0.2));
+    S.reales['r_'+i+'_activ']  = Math.round((base[i]||180)*mult*0.15*(0.9+Math.random()*0.2));
+  });
   saveData(); renderAll();
 }
 function clearReales() { S.reales={}; saveData(); renderAll(); }
 
 // ===================== EXPORT =====================
 function exportExcel() {
-  try{
-    const days=buildDays();
-    const wb=XLSX.utils.book_new();
-    const rows=[['EUROPA 2027 · FINANCIAL CONTROLLER'],['Generado:',new Date().toLocaleString('es-PE')],['Escenario:',S.scenario,'Presupuesto:','$'+S.scenarios[S.scenario],'TC EUR/USD:',S.tc],[]];
+  try {
+    const days = buildDays();
+    const wb = XLSX.utils.book_new();
+    const rows = [
+      ['EUROPA 2027 · FINANCIAL CONTROLLER'],
+      ['Generado:', new Date().toLocaleString('es-PE')],
+      ['Escenario:', S.scenario, 'Presupuesto:', '$'+S.scenarios[S.scenario], 'TC EUR/USD:', S.tc],
+      ['Ciudades activas:', getActiveCities().map(c=>c.name).join(', ')],
+      []
+    ];
     rows.push(['DÍA','FECHA','CIUDAD','ACTIVIDAD','PRESUP USD','REAL USD','DIFERENCIA','% DESV.','ACUM PRESUP','ACUM REAL']);
-    let cumP=0,cumR=0;
-    days.forEach((d,i)=>{
-      cumP+=d.budget;
-      const r=parseFloat(S.reales[i])||0;
-      if(S.reales[i]!==undefined&&S.reales[i]!=='') cumR+=r;
-      rows.push([d.day,d.date,d.city,d.activity,d.budget,r||(S.reales[i]!==undefined&&S.reales[i]!==''?r:''),
-        S.reales[i]!==undefined&&S.reales[i]!==''?d.budget-r:'',
-        S.reales[i]!==undefined&&S.reales[i]!==''?((r-d.budget)/d.budget*100).toFixed(1)+'%':'',
-        cumP,cumR||'']);
+    let cumP=0, cumR=0;
+    days.forEach((d,i) => {
+      cumP += d.budget;
+      const r = getDayTotalReal(i) || 0;
+      const hasReal = getDayTotalReal(i) !== null;
+      if (hasReal) cumR += r;
+      rows.push([d.day, d.date, d.city, d.activity, d.budget,
+        hasReal ? r : '',
+        hasReal ? d.budget-r : '',
+        hasReal && d.budget>0 ? ((r-d.budget)/d.budget*100).toFixed(1)+'%' : '',
+        cumP, cumR||'']);
     });
     rows.push([]);
-    rows.push(['CIUDAD','NOCHES','HOTEL USD','COMIDA USD','TRANSP USD','ACT USD','TOTAL USD']);
-    CITIES.forEach(c=>{ const b=getCityBudget(c); rows.push([c.name,b.nights,Math.round(b.hotel*S.tc),Math.round(b.food*S.tc),Math.round(b.transport),Math.round(b.entries),Math.round(b.totalUsd)]); });
-    const ws=XLSX.utils.aoa_to_sheet(rows);
-    XLSX.utils.book_append_sheet(wb,ws,'Dashboard Europa 2027');
-    XLSX.writeFile(wb,'EUROPA_2027_Financial_Controller.xlsx');
-  }catch(e){alert('Error exportando: '+e.message);}
+    rows.push(['CIUDAD','ACTIVA','NOCHES','HOTEL USD','COMIDA USD','TRANSP USD','ACT USD','TOTAL USD']);
+    CITIES_CATALOG.forEach(c => {
+      const b = getCityBudget(c);
+      const nights = c.dkey ? (S.days[c.dkey]||0) : 1;
+      rows.push([c.name, S.cityActive[c.id]!==false?'SÍ':'NO', nights,
+        Math.round(b.hotel*S.tc), Math.round(b.food*S.tc),
+        Math.round(b.transport), Math.round(b.entries), Math.round(b.totalUsd)]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, 'Dashboard Europa 2027');
+    XLSX.writeFile(wb, 'EUROPA_2027_Financial_Controller.xlsx');
+  } catch(e) { alert('Error exportando: '+e.message); }
 }
 
 // ===================== INIT =====================
 window.addEventListener('load', async () => {
-  renderAll();        // render inmediato con defaults
-  await loadData();   // carga cloud/local y re-renderiza si hay datos
-  // Auto-refresh cada 60s si hay conexión y no se está guardando
-  setInterval(() => { if (SYNC_ENABLED && !isSaving) loadData(); }, 60000);
+  renderCityCards(); // renderizar tarjetas de ciudad en Config
+  renderAll();
+  await loadData();
+  setInterval(()=>{ if(SYNC_ENABLED && !isSaving) loadData(); }, 60000);
 });
 </script>
 </body>
